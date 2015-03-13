@@ -393,6 +393,7 @@ def get_all_tags(username, view_type):
 			cleaned_data = []
 			for tag in data:
 				cleaned_data.append(tag[0])
+			print cleaned_data
 			return cleaned_data
 		else:
 			# Otherwise return Noething
