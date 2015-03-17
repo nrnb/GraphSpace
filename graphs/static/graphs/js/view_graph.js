@@ -620,19 +620,11 @@ $(document).ready(function() {
     $(".public").click(function (e) {
       e.preventDefault();
 
-      // var paths = document.URL.split('/')
-      // var publicLayout = $(this).val();
-      // var userId = $("#loggedIn").text();
-      // var ownerId = decodeURIComponent(paths[paths.length - 3])
-      // var gid = decodeURIComponent(paths[paths.length - 2])
-
-      // $.post("../../../getGroupsWithGraph/", {
-      //   "gid": gid,
-      //   "owner": ownerId,
-      //   "loggedIn": userId
-      // }, function (data) {
-      //   console.log(data);
-      // });
+      var paths = document.URL.split('/');
+      var publicLayout = $(this).val();
+      var userId = $("#loggedIn").text();
+      var ownerId = decodeURIComponent(paths[paths.length - 3]);
+      var gid = decodeURIComponent(paths[paths.length - 2]);
 
       $.post('../../../makeLayoutPublic/', {
         'gid': gid,
@@ -642,6 +634,41 @@ $(document).ready(function() {
       }, function (data) {
         window.location.reload();
       });
+
+      // $.post("../../../getGroupsWithLayout/", {
+      //   "layout": publicLayout,
+      //   "loggedIn": userId,
+      //   "gid": gid,
+      //   "owner": ownerId
+      // }, function (data) {
+      //   var layout_options = "";
+      //   if (data['Group_Information'].length > 0) {
+      //     for (var i = 0; i < data['Group_Information'].length; i++) {
+      //       if (data['Group_Information'][i]['2'] == true) {
+      //         if (ownerId == userId || data['Group_Information'][i]['1'] == userId) {
+      //           layout_options += '<li class="list-group-item layout" style="font-size: 15px;"><label><input type="checkbox" class="layout_val" checked="checked" style="margin-right: 30px;" value="' + data['Group_Information'][i]['0'] + '12345__43121__' + data['Group_Information'][i][1] + '">' + data['Group_Information'][i][0] + " owned by: " + data['Group_Information'][i][1] + '</label></li>';
+      //         } else {
+      //           layout_options += '<li class="list-group-item layout" style="font-size: 15px;"><label>' + data['Group_Information'][i][0] + " owned by: " + data['Group_Information'][i][1] + '</label></li>';
+      //         }
+      //       } else {
+      //         if (ownerId == userId || data['Group_Information'][i]['1'] == userId) {
+      //           layout_options += '<li class="list-group-item layout" style="font-size: 15px;"><label><input type="checkbox" class="layout_val" style="margin-right: 30px;" value="' + data['Group_Information'][i][0] + '12345__43121__' + data['Group_Information'][i][1] + '">' + data['Group_Information'][i][0] + " owned by: " + data['Group_Information'][i][1] + '</label></li>';
+      //         } else {
+      //           layout_options += '<li class="list-group-item layout" style="font-size: 15px;"><label>' + data['Group_Information'][i][0] + " owned by: " + data['Group_Information'][i][1] + '</label></li>';
+      //         }
+      //       }
+      //     }
+      //   } else {
+      //     layout_options += "You are not part of any groups"
+      //   }
+
+      //   layout_options += "<p style='display: none;' id='layoutId'>" + publicLayout + "</p>";
+
+      //   $(".checked-list-box").html(layout_options);
+      //   $(".layout_val").click(function(e) {
+      //       $(this).prop('checked');
+      //   });
+      // });
     });
 
     $("#share_graph").click(function (e) {
@@ -678,15 +705,54 @@ $(document).ready(function() {
           group_options += "You are not part of any groups"
         }
 
+
         $(".checked-list-box").html(group_options);
 
         $(".group_val").click(function(e) {
-          console.log($(this).prop('checked'));
+          $(this).prop('checked');
         });
 
       });
 
     });
+
+    $("#share_layout_with_selected_groups").click(function(e) {
+      var paths = document.URL.split('/')
+      var ownerId = decodeURIComponent(paths[paths.length - 3])
+      var gid = decodeURIComponent(paths[paths.length - 2])
+
+      var all_groups = {}
+      var groups_to_share_with = [];
+      var groups_not_to_share_with = [];
+
+      $(".layout_val").each(function() {
+          all_groups[$(this).val()] = $(this).is(":checked");
+      });
+
+
+      for (var key in all_groups) {
+        if (all_groups[key] == true) {
+          groups_to_share_with.push(key);
+        } else {
+          groups_not_to_share_with.push(key);
+        }
+      }
+
+      console.log(groups_to_share_with);
+      console.log(groups_not_to_share_with);
+
+      $.post('../../../shareLayoutWithGroups/', {
+        'layoutId': $("#layoutId").text(),
+        'gid': gid,
+        'owner': ownerId,
+        'groups_to_share_with' : groups_to_share_with,
+        'groups_not_to_share_with': groups_not_to_share_with
+      }, function (data) {
+        console.log(data);
+        // window.location.reload();
+      });
+    });
+
 
     $("#share_graph_with_selected_groups").click(function (e) {
       var paths = document.URL.split('/')
