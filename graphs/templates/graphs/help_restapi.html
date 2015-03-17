@@ -2,7 +2,17 @@
 {% block content %}
 {% load staticfiles %}
 
-{% include 'graphs/help_menu.html' %}
+<div class="container graphs">
+
+<ul class="nav nav-pills">
+    <li><a href="{% url 'help' %}" style="text-align:center">Getting started</a></li>
+    <li><a href="{% url 'help_tutorials' %}" style="text-align:center">Tutorials</a></li>
+    <li><a href="{% url 'help_graphs' %}" style="text-align:center">Graphs</a></li>
+    <li class="active"><a href="{% url 'help_restapi' %}" style="text-align:center">REST API</a></li>
+    <li><a href="{% url 'help_jsonref' %}" style="text-align:center">JSON Reference</a></li>
+    <li><a href="{% url 'help_about' %}" style="text-align:center">About</a></li>
+  </ul>
+<hr>
 
 <p>
 GraphSpace provides a RESTful API for managing your graphs.
@@ -12,64 +22,16 @@ Graphs are represented in <a href="http://json.org">JSON</a> format.
 <h3>Prerequisites</h3>
 
 <p>
-To execute the examples from the command line you will need an HTTP client. On Debian systems you can install by running
+To execute the examples from the command line you will need an HTTP client. On Debian systems you can install by running </p>
 
 <pre>
 sudo apt-get install curl
 </pre>
 
-Also, you will need a user account on graphspace.
+<p><b>In order to fully utilize all the features of GraphSpace, creating an account is strongly recommended.  However, it is not required as any user can still view <a href="{{url}}graphs/">public graphs</a>.</b>
 </p>
 
-Finally, you can save the following graph to a file as an example.
 
-<pre>
-{
-    "graph": {
-        "nodes": [
-            {
-                "data": {
-                    "shape": "ellipse",
-                    "id":"P43146",
-                    "label": "DCC",
-                    "color": "yellow",
-                    "height": 50,
-                    "width": 50
-                }
-            }, 
-            {
-                "data": {
-                    "shape": "ellipse",
-                    "id":"P08107",
-                    "label": "HSPA1B",
-                    "color": "yellow",
-                    "height": 50,
-                    "width": 50                
-                }
-            }
-        ],
-        "edges": [
-            {
-                "data": {
-                    "id": "P43146-P08107",
-                    "source": "P43146",
-                    "target": "P08107",
-                    "directed": "true",
-                    "color": "black",
-                    "width": 3
-                }
-            }
-        ]
-
-    },
-    "metadata": {
-        "description": "This is a tutorial graph",
-        "tags": [
-            "tutorial"
-        ]
-    }
-}
-</pre>
 
 <h3>API calls</h3>
 
@@ -88,7 +50,7 @@ Below is a list of the different API calls.
 </li>
 <li><h4><a href="#groups">Groups</a></h4>
 <ul>
-<li><a href="#get_groups">Get groups</a></li>
+<!-- <li><a href="#get_groups">Get groups</a></li> -->
 <li><a href="#get_group">Get group</a></li>
 <li><a href="#remove_group">Remove group</a></li>
 <li><a href="#create_group">Create group</a></li>
@@ -275,7 +237,7 @@ Example response:
 
 <h2 id="groups">Groups</h2>
 
-<h3 id="get_groups">Get groups</h3>
+<!-- <h3 id="get_groups">Get groups</h3>
 
 Get the ids of all groups on the server. The result is a JSON object containing a list of all groups, including their descriptions and owners.
 
@@ -289,13 +251,13 @@ Example response:
 {
    "groups" : [
       {
-         "owner" : "craigy@vt.edu",
+         "owner" : "divit52@vt.edu",
          "id" : "Research",
          "description" : "Research team group."
       }
    ]
 }
-</pre>
+</pre> -->
 
 <h3 id="get_group">Get group</h3>
 
@@ -309,7 +271,7 @@ Example response:
 
 <pre>
 {
-   "owner" : "craigy@vt.edu",
+   "owner" : "divit52@vt.edu",
    "graphs" : [
       {
          "id" : "158148980"
@@ -317,7 +279,7 @@ Example response:
    ],
    "users" : [
       {
-         "id" : "craigy@vt.edu"
+         "id" : "divit52@vt.edu"
       }
    ],
    "id" : "Research",
@@ -330,7 +292,7 @@ Example response:
 To create a group, use the following command. You will be the owner of the group, and you will have to set the description later.
 
 <pre>
-curl -X POST "{{url}}api/groups/add/[groupname]/" -F "username=[email]" -F "password=[password]"
+curl -X POST "{{url}}api/groups/add/[group_owner]/[groupname]/" -F "username=[email]" -F "password=[password]"
 </pre>
 
 Example response:
@@ -346,14 +308,14 @@ Example response:
 To remove a group use the following command. You can only remove a group that you are the owner of.
 
 <pre>
-curl -X POST "{{url}}api/groups/delete/[groupname]/" -F "username=[email]" -F "password=[password]"
+curl -X POST "{{url}}api/groups/delete/[group_owner]/[groupname]/" -F "username=[email]" -F "password=[password]"
 </pre>
 
 Example Successful response:
 
 <pre>
 {
-       "Success" : "Successfully deleted group owned by craigy@vt.edu."
+       "Success" : "Successfully deleted group owned by [group_owner]."
 }
 </pre>
 
@@ -361,13 +323,13 @@ Example failed response:
 
 <pre>
 {
-       "error" : "You can only delete your own groups"
+       "Failure" : "You can only delete your own groups"
 }
 </pre>
 
 <pre>
 {
-       "error" : "No such group exists"
+       "Failure" : "No such group exists"
 }
 </pre>
 
@@ -395,14 +357,14 @@ Example response:
 Add a user to a group. You can only add a user to a group that you belong to.
 
 <pre>
-curl -X POST "{{url}}api/groups/[groupname]/adduser/[member_email]/" -F "username=[email]" -F "password=[password]"
+curl -X POST "{{url}}api/groups/[group_owner]/[groupname]/adduser/[member]/" -F "username=[email]" -F "password=[password]"
 </pre>
 
 Example Successful response:
 
 <pre>
 {
-   "Success" : "Successfully added user test@test.com to group newgroup."
+   "Success" : "Successfully added user [member] to group [groupname]."
 }
 </pre>
 
@@ -416,14 +378,14 @@ Example Successful response:
 Remove a user from a group. You can remove yourself from any group, but you must be the owner of a group to remove other members.
 
 <pre>
-curl -X POST "{{url}}api/groups/demo/removeuser/craigy@vt.edu/" -F "username=dsingh5270@gmail.com" -F "password=test"
+curl -X POST "{{url}}api/groups/[group_owner]/[groupname]/removeuser/[member]/" -F "username=dsingh5270@gmail.com" -F "password=test"
 </pre>
 
 Example Successful response:
 
 <pre>
 {
-   "Success" : "Successfully removed user test@test.com from group newgroup."
+   "Success" : "Successfully removed user [member] from group [groupname]."
 }
 </pre>
 
@@ -438,14 +400,14 @@ Example Successful response:
 Share a graph with a group, effectively giving all members in the group read permission. You can only share graphs you own with groups you belong to.
 
 <pre>
-curl -X POST "{{url}}api/users/graphs/[graph name]/share/[group name]/" -F "username=[email]" -F "password=[password]"
+curl -X POST "{{url}}api/users/graphs/[graph name]/share/[group_owner]/[group name]/" -F "username=[email]" -F "password=[password]"
 </pre>
 
 Example Successful response:
 
 <pre>
 {
-   "Success" : "Shared graph owned by craigy@vt.edu with group Test."
+   "Success" : "Shared graph owned by [email] with group [groupname]."
 }
 </pre>
 
@@ -454,14 +416,14 @@ Example Successful response:
 Unshare a graph with a group, effectively removing read permission from all members in the group. You can only unshare graphs you own from groups you belong to.
 
 <pre>
-curl -X POST "{{url}}api/users/graphs/[graph name]/unshare/[group name]/" -F "username=[email]" -F "password=[password]"
+curl -X POST "{{url}}api/users/graphs/[graphname]/unshare/[group_owner]/[group name]/" -F "username=[email]" -F "password=[password]"
 </pre>
 
 Example Successful response:
 
 <pre>
 {
-   "Success" : "Unshared graph 491850553 owned by craigy@vt.edu with group Test."
+   "Success" : "Unshared graph [graphname] owned by [email] with group [groupname]."
 }
 </pre>
 

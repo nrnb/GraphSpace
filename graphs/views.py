@@ -48,18 +48,18 @@ def index(request):
     # db.insert_all_edges_from_json()
     #####################
 
-
     # handle login.
     # see graphs.auth.login for details
     context = login(request)
 
-    if context['Error'] != None:
-        # return HttpResponse(json.dumps({"Error": context['Error']}), content_type="application/json");
+    if context['Error'] == None:
+        # If there is someone logged in, return the 'my graphs' page, otherwise redirect to inital screen
+        if request.session['uid'] != None:
+            return _graphs_page(request, 'my graphs')
+
         return render(request, 'graphs/index.html', context)
-    # If there is someone logged in, return the 'my graphs' page, otherwise redirect to inital screen
-    if request.session['uid'] != None:
-        return _graphs_page(request, 'my graphs')
-    return render(request, 'graphs/index.html', context)
+    else:
+        return HttpResponse(json.dumps({"Error": context['Error']}), content_type="application/json");
 
 def view_graph(request, uid, gid):
     '''
@@ -106,7 +106,12 @@ def view_graph(request, uid, gid):
 
     # Get all the groups that are shared for this graph
     shared_groups = db.get_all_groups_for_this_graph(uid, graph_to_view[2])
-    context['shared_groups'] = shared_groups
+
+    format_shared_groups = []
+    for shared_group in shared_groups:
+        format_shared_groups.append(shared_group[0] + ' owned by ' + shared_group[1])
+
+    context['shared_groups'] = format_shared_groups
 
     if graph_to_view[1] == 1:
         context['shared'] = 'Publicly Shared'
@@ -264,6 +269,16 @@ def _graphs_page(request, view_type):
         pager_context = pager(request, context['graph_list'])
         if type(pager_context) is dict:
             context.update(pager_context)
+            print context['current_page'][0]
+            for i in xrange(len(context['current_page'].object_list)):
+                graph = list(context['current_page'][i])
+                if request.GET.get('search'):
+                    print graph[4]
+                    graph[1] = db.get_all_tags_for_graph(graph[0], graph[5])
+                else:
+                    graph[1] = db.get_all_tags_for_graph(graph[0], graph[3])
+                graph = tuple(graph)
+                context['current_page'].object_list[i] = graph
 
     # indicator to include css/js footer for side menu support etc.
     context['footer'] = True
@@ -283,13 +298,13 @@ def constructGraphMessage(context, view_type, search, tags):
 
     elif view_type == 'public':
         if search == None and tags == None:
-            context['message'] = "It appears that there are no public graphs available.  Please create an account and join a group or upload your own graphs."
+            context['message'] = "It appears that there are no public graphs available.  Please create an account and join a group or <a href='/../help/restapi/#add_graph'>upload</a> your own graphs."
         elif search != None and tags == None:
-            context['message'] = "It appears that there are no public graphs available that match the search criteria.  Please create an account and join a group or upload your own graphs with the given search criteria."
+            context['message'] = "It appears that there are no public graphs available that match the search criteria.  Please create an account and join a group or <a href='/../help/restapi/#add_graph'>upload</a> your own graphs with the given search criteria."
         elif tags != None and search == None:
-            context['message'] = "It appears that there are no public graphs available that match the tag criteria.  Please create an account and join a group or upload your own graphs with the given tag criteria."
+            context['message'] = "It appears that there are no public graphs available that match the tag criteria.  Please create an account and join a group or <a href='/../help/restapi/#add_graph'>upload</a> your own graphs with the given tag criteria."
         else:
-            context['message'] = "It appears that there are no public graphs available that match the search and tag criteria.  Please create an account and join a group or upload your own graphs with the given search and tag criteria."
+            context['message'] = "It appears that there are no public graphs available that match the search and tag criteria.  Please create an account and join a group or <a href='/../help/restapi/#add_graph'>upload</a> your own graphs with the given search and tag criteria."
 
     elif view_type == 'all':
         if search == None and tags == None:
@@ -302,13 +317,13 @@ def constructGraphMessage(context, view_type, search, tags):
             context['message'] = "It appears that there are no graphs available that match the search and tag criteria."
     else:
         if search == None and tags == None:
-            context['message'] = "It appears that you currently have no graphs uploaded. Please upload graphs in order to see them here."
+            context['message'] = "It appears that you currently have no graphs uploaded. Please <a href='/../help/restapi/#add_graph'>upload</a> graphs in order to see them here."
         elif search != None and tags == None:
-            context['message'] = "It appears that you currently have no graphs uploaded that match the search terms. Please upload graphs with the given search criteria in order to see them here."
+            context['message'] = "It appears that you currently have no graphs uploaded that match the search terms. Please <a href='/../help/restapi/#add_graph'>upload</a> graphs with the given search criteria in order to see them here."
         elif tags != None and search == None:
-            context['message'] = "It appears that you currently have no graphs uploaded that match the tag terms. Please upload graphs with the given tag criteria in order to see them here."
+            context['message'] = "It appears that you currently have no graphs uploaded that match the tag terms. Please <a href='/../help/restapi/#add_graph'>upload</a> graphs with the given tag criteria in order to see them here."
         else:
-            context['message'] = "It appears that you currently have no graphs uploaded that match the serach and tag terms. Please upload graphs with the given search and tag criteria in order to see them here."
+            context['message'] = "It appears that you currently have no graphs uploaded that match the serach and tag terms. Please <a href='/../help/restapi/#add_graph'>upload</a> graphs with the given search and tag criteria in order to see them here."
 
     return context
 
@@ -413,7 +428,7 @@ def _groups_page(request, view_type):
         context['Error'] = "You need to be logged in and also be a member of this group in order to see this group's contents!"
         return render(request, 'graphs/error.html', context)
 
-def graphs_in_group(request, group_id):
+def graphs_in_group(request, group_owner, group_id):
     '''
         Groups/group_name page, where group_name is the name of the
         group to view the graphs that belong to the group.
@@ -444,25 +459,14 @@ def graphs_in_group(request, group_id):
     if "uid" in context:
         if group_id != 'all' or group_id != 'member':
 
-            group_list = db.groups_for_user(context['uid'])
+            group_dict = db.groups_for_user(context['uid'])
 
-            if group_id not in group_list:
+            if not any(g_dict['groupId'] == group_id for g_dict in group_dict):
                 context['Error'] = "You need to be a member of a group to see its contents!  Please contact group's owner to add you to the group!"
                 return render(request, 'graphs/error.html', context)
 
-            # query for graphs that belong to this group
-            graphs_of_this_group = db_session.query(group_to_graph.c.user_id, 
-                                            group_to_graph.c.graph_id).filter(
-                                                        group_to_graph.c.group_id==group_id
-                                                        ).subquery()
-
-            # query the graph table for specific information of each and every graph
-            # that belong to the group
-            graph_data = db_session.query(graph.c.graph_id, graph.c.modified, 
-                                          graph.c.user_id, graph.c.public).filter(
-                                                graph.c.graph_id==graphs_of_this_group.c.graph_id
-                                                ).all()
-
+            # Get all graph information that belong to this group
+            graph_data = db.get_all_graphs_for_group(group_owner, group_id)
 
             # include the graph data to the context
             if len(graph_data) != 0:
@@ -470,7 +474,7 @@ def graphs_in_group(request, group_id):
             else:
                 context['graph_data'] = None
 
-            group_information = db.get_group_by_id(group_id)
+            group_information = db.get_group_by_id(group_owner, group_id)
 
             # pass the group_id to the context for display
             context['group_id'] = group_information[0][4]
@@ -875,8 +879,21 @@ def shareGraphWithGroups(request):
         groups_to_share_with = request.POST.getlist('groups_to_share_with[]')
         groups_not_to_share_with = request.POST.getlist('groups_not_to_share_with[]')
 
-        db.updateSharingInformationForGraph(owner, gid, groups_to_share_with, groups_not_to_share_with)
+        print groups_to_share_with
+        print "%s Not to share with: %s", ("Blah: ", groups_not_to_share_with)
+
+        for group in groups_to_share_with:
+            groupInfo = group.split("12345__43121__")
+            db.share_graph_with_group(owner, gid, groupInfo[0], groupInfo[1])
+
+        for group in groups_not_to_share_with:
+            groupInfo = group.split("12345__43121__")
+            db.unshare_graph_with_group(owner, gid, groupInfo[0], groupInfo[1])
+
         return HttpResponse("Done")
+
+    else:
+        return HttpResponse("Test")
 
 def create_group(request, groupname):
     '''
@@ -986,7 +1003,23 @@ def remove_member_through_ui(request):
     if request.method == 'POST':
         result = db.remove_user_from_group(request.POST['member'], request.POST['groupOwner'], request.POST['groupId'])
         return HttpResponse(json.dumps({"Message": result}), content_type="application/json")
-        
+
+
+
+def getGroupsWithGraph(request):
+    '''
+        Gets all groups that have the particular graph shared in the group.
+
+        :param request: Incoming HTTP POST Request containing:
+
+        {"loggedIn": [current user], "owner": < Owner of graph >, "gid": "Id of graph"}
+
+        :return JSON: {"Message": <message>}
+    '''
+    if request.method == 'POST':
+        # result = db.
+        return HttpResponse(json.dumps({"Message": "result"}), content_type="application/json")
+
 
 ##### END VIEWS #####
 
@@ -1116,12 +1149,13 @@ def get_groups(request):
         data = db.get_all_groups_in_server()
         return HttpResponse(json.dumps({"Groups": data}), content_type="application/json");
 
-def get_group(request, groupname):
+def get_group(request, group_owner, groupname):
     '''
-        Get all members of this group 
+        Get information about this group 
 
         :param request: Incoming HTTP POST Request containing: {"username": <username>,"password": <password>}
-        :param groupname: Name of group to get from server
+        :param group_owner: Owner of group to get from server
+        :param groupname: ID of group to get from server
         :return response: JSON Response: {"Groups|Error": <message>}
 
     '''
@@ -1130,11 +1164,11 @@ def get_group(request, groupname):
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
 
-        data = db.get_group(groupname)
+        data = db.get_group(group_owner, groupname)
         return HttpResponse(json.dumps({"Groups": data}), content_type="application/json");
 
 
-def delete_group(request, groupname):
+def delete_group(request, group_owner, groupname):
     '''
         Deletes a group from the server.
         
@@ -1151,11 +1185,14 @@ def delete_group(request, groupname):
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
 
-        data = db.remove_group(request.POST['username'], groupname)
-        return HttpResponse(json.dumps({"Success": data}), content_type="application/json");
+        if group_owner == request.POST['username']:
+            data = db.remove_group(request.POST['username'], groupname)
+            return HttpResponse(json.dumps({"Success": data}), content_type="application/json");
+        else:
+            return HttpResponse(json.dumps({"Failure": "The group owner and the person making this request are not the same person!"}), content_type="application/json")
 
 
-def add_group(request, groupname):
+def add_group(request, group_owner, groupname):
     '''
         Adds a group to the server.  If groupname already exists under a user account, then it will fail, otherwise a group name is created under the user's account.
 
@@ -1172,8 +1209,11 @@ def add_group(request, groupname):
 
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
-
-        return create_group(request, groupname)
+        
+        if group_owner == request.POST['username']:
+            return create_group(request, groupname)
+        else:
+            return HttpResponse(json.dumps({"Failure": "The group owner and the person making this request are not the same person!"}), content_type="application/json")
 
 def get_group_for_user(request, user_id):
     '''
@@ -1195,7 +1235,7 @@ def get_group_for_user(request, user_id):
         group = db.groups_for_user(user_id)
         return HttpResponse(json.dumps({"User": user_id, "Groups": group}), content_type="application/json")
 
-def add_user_to_group(request, groupname, user_id):
+def add_user_to_group(request, group_owner, groupname, user_id):
     '''
         Adds specified user to a group.
 
@@ -1214,17 +1254,21 @@ def add_user_to_group(request, groupname, user_id):
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
 
-        # Adds user to group
-        data = db.add_user_to_group(user_id, request.POST['username'], groupname)
+        if group_owner == request.POST['username']:
+            # Adds user to group
+            data = db.add_user_to_group(user_id, request.POST['username'], groupname)
 
-        # If nothing is returned, that means that something went wrong
-        if data == None:
-            return  HttpResponse(json.dumps({"Error": "Group doesn't exist or user has already been added!"}), content_type="application/json")
+            # If nothing is returned, that means that something went wrong
+            if data == None:
+                return  HttpResponse(json.dumps({"Error": "Group doesn't exist or user has already been added!"}), content_type="application/json")
 
-        return HttpResponse(json.dumps({"Response": data}), content_type="application/json")
+            return HttpResponse(json.dumps({"Response": data}), content_type="application/json")
+
+        else:
+            return HttpResponse(json.dumps({"Failure": "The group owner and the person making this request are not the same person!"}), content_type="application/json")
 
 
-def remove_user_from_group(request, groupname, user_id):
+def remove_user_from_group(request, group_owner, groupname, user_id):
     '''
         Removes user from group
 
@@ -1239,11 +1283,13 @@ def remove_user_from_group(request, groupname, user_id):
 
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
+        if group_owner == request.POST['username']:
+            group = db.remove_user_from_group(user_id, request.POST['username'], groupname)
+            return HttpResponse(json.dumps({"Response": group}), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps({"Failure": "The group owner and the person making this request are not the same person!"}), content_type="application/json")
 
-        group = db.remove_user_from_group(user_id, request.POST['username'], groupname)
-        return HttpResponse(json.dumps({"Response": group}), content_type="application/json")
-
-def share_graph(request, graphname, groupname):
+def share_graph(request, graphname, group_owner, groupname):
     '''
         Share a graph with group.
 
@@ -1259,10 +1305,10 @@ def share_graph(request, graphname, groupname):
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
 
-        result = db.share_graph_with_group(request.POST['username'], graphname, groupname)
+        result = db.share_graph_with_group(request.POST['username'], graphname, groupname, group_owner)
         return HttpResponse(json.dumps({"Response": result}), content_type="application/json")
 
-def unshare_graph(request, graphname, groupname):
+def unshare_graph(request, graphname, group_owner, groupname):
     '''
         Unshare a graph from a group.
 
@@ -1278,7 +1324,7 @@ def unshare_graph(request, graphname, groupname):
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps({"Error": "Username/Password is not recognized!"}), content_type="application/json")
 
-        result = db.unshare_graph_with_group(request.POST['username'], graphname, groupname)
+        result = db.unshare_graph_with_group(request.POST['username'], graphname, groupname, group_owner)
         return HttpResponse(json.dumps({"Response": result}), content_type="application/json")
 
 def get_tags_for_user(request, username):
