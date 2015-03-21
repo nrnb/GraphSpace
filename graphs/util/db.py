@@ -2849,9 +2849,6 @@ def get_all_tags_for_graph(graphname, username):
 	finally:
 		if con:
 			con.close()
-<<<<<<< HEAD
-				
-=======
 
 def make_all_graphs_for_tag_public(tagname, username):
 	'''
@@ -2936,4 +2933,3 @@ def delete_all_graphs_for_tag(tagname, username):
 		if con:
 			con.close()
 					
->>>>>>> 0257fdbe96684e1cfd5751eabd38bccedb2adb1c
