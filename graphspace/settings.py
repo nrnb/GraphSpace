@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 
 # GLOBAL VALUES FOR DATABASE AND PATHS
 DB_FULL_PATH = '/home/ubuntu/GraphSpace/graphspace.db'
-URL_PATH = "http://ec2-54-152-211-210.compute-1.amazonaws.com/"
+URL_PATH = "http://ec2-52-5-177-0.compute-1.amazonaws.com/" 
 DATABASE_LOCATION = 'sqlite:///' + DB_FULL_PATH
 
 # Application definition
