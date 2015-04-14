@@ -467,11 +467,17 @@ def set_layout_context(request, context, uid, gid):
 	# send layout information to the front-end
 	context['layout_to_view'] = layout_to_view
 	context['layout_urls'] = URL_PATH + "graphs/" + uid + "/" + gid + "/?layout="
+
+	search_type = None
+
+	if 'partial_search' in request.GET:
+	    search_type = 'partial_search'
+	elif 'full_search' in request.GET:
+	    search_type = 'full_search'
+
 	# context['layouts'] = get_all_layouts_for_graph(uid, gid)
 	if 'uid' in context:
 		context['my_layouts'] = get_my_layouts_for_graph(uid, gid, context['uid'])
-		print get_shared_layouts_for_graph(uid, gid, context['uid'])
-		print  get_public_layouts_for_graph(uid, gid)
 		context['shared_layouts'] = list(set(get_shared_layouts_for_graph(uid, gid, context['uid']) + get_public_layouts_for_graph(uid, gid)))
 	else:
 		context['my_layouts'] = []
@@ -766,7 +772,6 @@ def search_result(uid, search_type, search_terms, view_type):
 	'''
 
 	if search_type != 'partial_search' and search_type !=  'full_search':
-		print 'here'
 		return []
 
 	# Make into list if it is not a lsit
@@ -788,8 +793,11 @@ def search_result(uid, search_type, search_terms, view_type):
 				else:
 					intial_graphs_from_search = intial_graphs_from_search + find_nodes(uid, search_type, search_word, view_type, cur) + find_graphs_using_names(uid, search_type, search_word, view_type, cur)
 
-			intial_graphs_from_search = list(set(intial_graphs_from_search))
+			# intial_graphs_from_search = list(set(intial_graphs_from_search))
 			
+			if view_type == 'shared':
+				print intial_graphs_from_search
+
 			# After all the SQL statements have ran for all of the search_terms, count the number of times
 			# a graph appears in the initial list. If it appears as many times as there are 
 			# search terms, then that graph matches all the search terms and it should be returned
@@ -945,7 +953,7 @@ def find_edges(uid, search_type, search_word, view_type, cur):
 
 	return actual_graph_with_edges
 
-def find_edge(uid, gid, edge_to_find):
+def find_edge(uid, gid, edge_to_find, search_type):
 	'''
 		Finds the id of the edge inside graph
 		Used for highlighting elements inside the graph
@@ -953,6 +961,7 @@ def find_edge(uid, gid, edge_to_find):
 		:param uid: Owner of graph
 		:param gid: Name of graph that is being viewed
 		:param edge_to_find: Edge that is being searched for
+		:param search_type: Partial or full matching
 		:return ID: [ID of edge]
 	'''
 	con = None
@@ -963,30 +972,48 @@ def find_edge(uid, gid, edge_to_find):
 		head_node = edge_to_find.split(':')[0]
 		tail_node = edge_to_find.split(':')[1]
 
-		# Find node id's that are being searched for (source and target nodes)
-		head_node = find_node(uid, gid, head_node)
-		tail_node = find_node(uid, gid, tail_node)
+		if search_type == 'partial_search':
 
-		# If both nodes exist, find label between them
-		if tail_node != None and head_node != None:
-			cur.execute('select label from edge where tail_id = ? and head_id = ? and head_user_id = ? and head_graph_id = ? limit 1', (tail_node, head_node, uid, gid))
-			data = cur.fetchall()
-			# If something exists, return the ids of the paents
-			if data != None and len(data) > 0:
-				return data[0][0]
-			else:
-				return None
+			# Find node id's that are being searched for (source and target nodes)
+			head_nodes = find_node(uid, gid, head_node, 'partial_search')
+			tail_nodes = find_node(uid, gid, tail_node, 'partial_search')
+
+			edge_list = []
+			if len(head_node) > 0 and len(tail_node) > 0:
+				for i in xrange(len(tail_nodes)):
+					for j in xrange(len(head_nodes)):
+						cur.execute('select label from edge where tail_id = ? and head_id = ? and head_user_id = ? and head_graph_id = ? limit 1', (tail_nodes[i], head_nodes[j], uid, gid))
+						data = cur.fetchall()
+						if data and len(data) > 0:
+							edge_list.append(data[0])
+
+				return edge_list
 		else:
-			return None
+
+			# Find node id's that are being searched for (source and target nodes)
+			head_node = find_node(uid, gid, head_node, 'full_search')
+			tail_node = find_node(uid, gid, tail_node, 'full_search')
+
+			# If both nodes exist, find label between them
+			if tail_node != None and head_node != None:
+				cur.execute('select label from edge where tail_id = ? and head_id = ? and head_user_id = ? and head_graph_id = ? limit 1', (str(tail_node[0]), str(head_node[0]), uid, gid))
+				data = cur.fetchall()
+				# If something exists, return the ids of the paents
+				if data != None and len(data) > 0:
+					return data[0]
+				else:
+					return []
+	
+		return []
 
 	except lite.Error, e:
 		print 'Error %s:' % e.args[0]
-		return None
+		return []
 	finally:
 		if con:
 			con.close()
 
-def find_node(uid, gid, node_to_find):
+def find_node(uid, gid, node_to_find, search_type):
 	'''
 		Finds the id of the node inside graph
 		Used for highlighting elements inside the graph
@@ -995,32 +1022,52 @@ def find_node(uid, gid, node_to_find):
 		:param gid: Name of graph that is being viewed
 		:param search_type: partial or full matching
 		:param node_to_find: Node that is being searched for
+		:param search_type: Partial or full matching
 		:return ID: [ID of node]
 	'''
 
-	id_of_node = None
 	con = None
 	try:
 		con = lite.connect(DB_NAME)
 		cur = con.cursor()
 
-		# Get the id of the node (could be id or a label) and return it if they exist
-		cur.execute('select node_id from virtual_node_table where node_id MATCH ? and user_id = ? and graph_id = ? limit 1', ('*' + node_to_find + '*', uid, gid))
-		id_data = cur.fetchall()
-		if id_data != None and len(id_data) > 0:
-			return id_data[0][0]
-		else:
-			cur.execute('select node_id from virtual_node_table where label MATCH ? and user_id = ? and graph_id = ? limit 1', ('*' + node_to_find + '*', uid, gid))
+		if search_type == 'partial_search':
+			# Get the id of the node (could be id or a label) and return it if they exist
+			# cur.execute('select node_id from virtual_node_table where node_id MATCH ? and user_id = ? and graph_id = ?', ('.' + node_to_find + '*', uid, gid))
+			# id_data = cur.fetchall()
+			id_list = []
+
+			# for ids in id_data:
+			# 	id_list.append(ids[0])
+	
+			cur.execute('select node_id from virtual_node_table where label MATCH ? and user_id = ? and graph_id = ?', ('.' + node_to_find + '*', uid, gid))
+			label_data = cur.fetchall()
+			for labels in label_data:
+				id_list.append(str(labels[0]))
+			
+			id_list = list(set(id_list))
+
+			if len(id_list) > 0:
+				return id_list
+
+		elif search_type == 'full_search':
+			# Get the id of the node (could be id or a label) and return it if they exist
+			# cur.execute('select node_id from node where node_id = ? and user_id = ? and graph_id = ? limit 1', (node_to_find, uid, gid))
+			# id_data = cur.fetchall()
+			# if id_data != None and len(id_data) > 0:
+			# 	return id_data[0][0]
+			# else:
+			cur.execute('select node_id from node where label = ? and user_id = ? and graph_id = ? limit 1', (node_to_find, uid, gid))
 			label_data = cur.fetchall()
 
 			if label_data != None and len(label_data) > 0:
-				return label_data[0][0]
-			else:
-				return None
+				return [label_data[0][0]]
+
+		return []
 
 	except lite.Error, e:
 		print 'Error %s:' % e.args[0]
-		return None
+		return []
 	finally:
 		if con:
 			con.close()
@@ -1040,28 +1087,28 @@ def find_nodes(uid, search_type, search_word, view_type, cur):
 
 	if search_type == 'partial_search':
 		if view_type == 'my graphs':
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.label MATCH ? and n.graph_id = g.graph_id and n.user_id = ?', ('*' + search_word + '*', uid))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.label MATCH ? and n.graph_id = g.graph_id and n.user_id = ?', ('.' + search_word + '*', uid))
 			node_labels = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, node_labels)
 
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.node_id MATCH ? and n.graph_id = g.graph_id and n.user_id = ?', ('*' + search_word + '*', uid))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.node_id MATCH ? and n.graph_id = g.graph_id and n.user_id = ?', ('.' + search_word + '*', uid))
 			node_ids = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, node_ids)
 
 		elif view_type == 'shared':
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g, group_to_user as gu where n.label MATCH ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', (uid, '*' + search_word + '*'))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g, group_to_user as gu where n.label MATCH ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', ('.' + search_word + '*', uid))
 			shared_labels = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, shared_labels)
 
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g, group_to_user as gu where n.node_id MATCH ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', (uid,'*' + search_word + '*'))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g, group_to_user as gu where n.node_id MATCH ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', ('.' + search_word + '*', uid))
 			shared_ids = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, shared_ids)
 		else:
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.label MATCH ? and n.graph_id = g.graph_id and g.public = 1 and n.user_id = g.user_id', ('*' + search_word + '*', ))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.label MATCH ? and n.graph_id = g.graph_id and g.public = 1 and n.user_id = g.user_id', ('.' + search_word + '*', ))
 			public_labels = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, public_labels)
 
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.node_id MATCH ? and n.graph_id = g.graph_id and g.public = 1 and n.user_id = g.user_id', ('*' + search_word + '*', ))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, graph as g where n.node_id MATCH ? and n.graph_id = g.graph_id and g.public = 1 and n.user_id = g.user_id', ('.' + search_word + '*', ))
 			public_ids = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, public_ids)
 
@@ -1076,11 +1123,11 @@ def find_nodes(uid, search_type, search_word, view_type, cur):
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, node_ids)
 
 		elif view_type == 'shared':
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g, group_to_user as gu where n.label = ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', (uid, search_word))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g, group_to_user as gu where n.label = ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', (search_word, uid))
 			shared_labels = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, shared_labels)
 
-			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g, group_to_user as gu where n.node_id = ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', (uid, search_word))
+			cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g, group_to_user as gu where n.label = ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gu.user_id = ? and gu.group_id = gg.group_id and gu.group_owner = gg.group_owner', (search_word, uid))
 			shared_ids = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, shared_ids)
 		else:
@@ -1098,6 +1145,7 @@ def find_nodes(uid, search_type, search_word, view_type, cur):
 		graph_list[1] = graph_list[1] + ' (' + graph_list[2] + ')'
 		actual_graph_with_nodes.append(tuple(graph_list))
 
+	print actual_graph_with_nodes
 	return actual_graph_with_nodes
 
 def find_graphs_using_names(uid, search_type, search_word, view_type, cur):
@@ -1786,17 +1834,17 @@ def find_nodes_for_graphs_in_group(groupOwner, groupId, search_type, word, cur):
 	labels_and_id_matched_graphs = []
 
 	if search_type == 'partial_search':
-		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g where gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_owner = ? and gg.group_id = ? and n.label MATCH ? ', (groupOwner, groupId, '*' + word + '*'))
+		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g where n.label MATCH ? and gg.graph_id = n.graph_id and gg.user_id = n.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_id = ? and gg.user_id = ?', ('.' + word + '*', groupId, groupOwner))
 		labels_and_id_matched_graphs = add_unique_to_list(labels_and_id_matched_graphs, cur.fetchall())
 
-		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g where gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_owner = ? and gg.group_id = ? and n.node_id MATCH ? ', (groupOwner, groupId, '*' + word + '*'))
+		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g where n.node_id MATCH ? and gg.graph_id = n.graph_id and gg.user_id = n.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_id = ? and gg.user_id = ?', ('.' + word + '*', groupId, groupOwner))
 		labels_and_id_matched_graphs = add_unique_to_list(labels_and_id_matched_graphs, cur.fetchall())
 
 	elif search_type == 'full_search':
-		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g where n.label = ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_owner = ? and gg.group_id = ?', (word, groupOwner, groupId))
+		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g where n.label = ? and gg.graph_id = n.graph_id and gg.user_id = n.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_id = ? and gg.user_id = ?', (word, groupId, groupOwner))
 		labels_and_id_matched_graphs = add_unique_to_list(labels_and_id_matched_graphs, cur.fetchall())
 
-		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from virtual_node_table as n, group_to_graph as gg, graph as g where n.node_id = ? and gg.graph_id = n.graph_id and n.user_id = gg.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_owner = ? and gg.group_id = ?', (word, groupOwner, groupId))
+		cur.execute('select n.graph_id, n.node_id, n.label, g.modified, n.user_id, g.public from node as n, group_to_graph as gg, graph as g where n.node_id = ? and gg.graph_id = n.graph_id and gg.user_id = n.user_id and gg.graph_id = g.graph_id and gg.user_id = g.user_id and gg.group_id = ? and gg.user_id = ?', (word, groupId, groupOwner))
 		labels_and_id_matched_graphs = add_unique_to_list(labels_and_id_matched_graphs, cur.fetchall())
 	
 	actual_graph_with_nodes = []

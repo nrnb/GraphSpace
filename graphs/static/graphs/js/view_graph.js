@@ -111,7 +111,6 @@ $(document).ready(function() {
            var hexCode = colourNameToHex(nodeData['color']);
            if (hexCode != false) {
             nodeData['color'] = hexCode;
-            console.log(hexCode);
            } else {
             if (isHexaColor(addCharacterToHex(nodeData['color']))) {
 
@@ -188,11 +187,16 @@ $(document).ready(function() {
 
 
 
-      //If ther are any terms to be searched for, highlight those terms, if found
-      var searchTerms = getQueryVariable("search");
-      if (searchTerms) {
-        searchValues(searchTerms);
-      }
+      // //If ther are any terms to be searched for, highlight those terms, if found
+      if (getQueryVariable('full_search')) {
+          // Initially set search to full matching
+          $("#full_search").attr('checked', true);
+       } else {
+          // Initially set search to full matching
+          $("#partial_search").attr('checked', true);
+       }
+
+       searchBothTypes();
 
     } // end ready: function()
     });
@@ -275,18 +279,44 @@ $(document).ready(function() {
         "unlisted": 0
       }, function (data) {
         var layoutUrl = window.location.pathname + "?layout=" + layoutName;
+
+        var searchTerms = getHighlightedTerms();
+        if (searchTerms[0].length > 0) {
+          layoutUrl += '&partial_search=';
+          for (var i = 0; i < searchTerms[0].length; i++) {
+            if (i < searchTerms[0].length - 1) {
+              layoutUrl += searchTerms[0][i] + ',';
+            } else {
+              layoutUrl += searchTerms[0][i];
+            }
+          }      
+        } 
+
+        if (searchTerms[1].length > 0) {
+          layoutUrl += '&full_search=';
+          for (var i = 0; i < searchTerms[1].length; i++) {
+            if (i < searchTerms[1].length - 1) {
+              layoutUrl += searchTerms[1][i] + ',';
+            } else {
+              layoutUrl += searchTerms[1][i];
+            }
+          }      
+        } 
         window.location.replace(layoutUrl);
       });
     });
 
     //Searches for the element inside the graph
-
-    $("#search_button").click(function(e) {
+     $("#search_button").click(function (e) {
       e.preventDefault();
       if ($("#search").val().length > 0) {
-        searchValues($("#search").val());
+        searchValues($('input[name=match]:checked').val(), $("#search").val());
       }
-    });
+     });
+
+    if (getQueryVariable($('input[name=match]:checked').val())) {
+    $("#searching").val(decodeURIComponent(getQueryVariable($('input[name=match]:checked').val())));
+   }
 
     //Unhighlights terms when the buttons in the search box is clicked on
     $("#search_terms").on("click", ".search", function(e) {
@@ -303,19 +333,19 @@ $(document).ready(function() {
       }
     });
 
-    $(".highlight").click(function (e) {
-      e.preventDefault();
-      var searchTerms = getHighlightedTerms();
-      if (searchTerms.length > 0) {
-        var linkHref = $(this).attr('id') + '&search=' + getHighlightedTerms();
-      } else {
-        var linkHref = $(this).attr('id');
-      }
+    // $(".highlight").click(function (e) {
+    //   e.preventDefault();
+    //   var searchTerms = getHighlightedTerms();
+    //   if (searchTerms.length > 0) {
+    //     var linkHref = $(this).attr('id') + '&search=' + getHighlightedTerms();
+    //   } else {
+    //     var linkHref = $(this).attr('id');
+    //   }
 
-      $("#layout_link").attr('href', linkHref);
-      $("#layout_link").text("Link to this graph with highlighted elements");
-      $("#layout_link").width(20);
-    });
+    //   $("#layout_link").attr('href', linkHref);
+    //   $("#layout_link").text("Link to this graph with highlighted elements");
+    //   $("#layout_link").width(20);
+    // });
 
     $(".change").click(function (e) {
       e.preventDefault();
@@ -364,12 +394,34 @@ $(document).ready(function() {
     $(".layout_links").tooltip();
 
     $(".layout_buttons").click(function (e) {
+      var linkHref = "";
       e.preventDefault();
       var searchTerms = getHighlightedTerms();
-      if (searchTerms.length > 0) {
-        var linkHref = $(this).attr('href') + '&search=' + getHighlightedTerms();
-      } else {
-        var linkHref = $(this).attr('href');
+
+      if (searchTerms[0].length > 0) {
+        linkHref = $(this).attr('href') + '&partial_search=';
+        for (var i = 0; i < searchTerms[0].length; i++) {
+          if (i < searchTerms[0].length - 1) {
+            linkHref += searchTerms[0][i] + ',';
+          } else {
+            linkHref += searchTerms[0][i];
+          }
+        }      
+      } 
+
+      if (searchTerms[1].length > 0) {
+        linkHref = $(this).attr('href') + '&full_search=';
+        for (var i = 0; i < searchTerms[1].length; i++) {
+          if (i < searchTerms[1].length - 1) {
+            linkHref += searchTerms[1][i] + ',';
+          } else {
+            linkHref += searchTerms[1][i];
+          }
+        }      
+      } 
+
+      if (searchTerms[0].length == 0 && searchTerms[1].length == 0) {
+        linkHref = $(this).attr('href');
       }
 
       if (e.target == this) {
@@ -520,8 +572,7 @@ $(document).ready(function() {
         // 'groups_to_share_with' : groups_to_share_with,
         // 'groups_not_to_share_with': groups_not_to_share_with
       }, function (data) {
-        console.log(data);
-        // window.location.reload();
+        window.location.reload();
       });
     });
 
@@ -632,98 +683,208 @@ function fireEvent(obj,evt){
   }
 }
 
+function searchBothTypes() {
+  searchValues('partial_search', getQueryVariable('partial_search'));
+  searchValues('full_search', getQueryVariable('full_search'))
+}
+
 //Function to search through graph elements in order to highlight the 
 //appropriate one
-function searchValues(labels) {
+function searchValues(search_type, labels) {
+
   //split paths
   var paths = document.URL.split('/');
 
-  var highlightedTerms = Array();
+  var partialDistinction = Array();
+  var exactDistinction = Array();
+
+  $("#search_error_text").text("");
+
+  $("#search_error").css("display", "none");
 
   //posts to server requesting the id's from the labels
   //so cytoscape will recognize the correct element
   $.post("../../../retrieveIDs/", {
     'values': labels,
     "gid": decodeURIComponent(paths[paths.length - 2]),
-    "uid": decodeURIComponent(paths[paths.length - 3]) 
+    "uid": decodeURIComponent(paths[paths.length - 3]),
+    "search_type": search_type 
   }, function (data) {
 
+    data = JSON.parse(data);
+
+    var displayLink = false;
+
+    var oldHtml = $("#search_terms").html();
+    // $("#search_terms").html("");
+
+    if (labels.length > 0) {
     //Split the labels so we can reference the labels
     labels = labels.split(',');
 
-    //It selects those nodes that have labels as their ID's
-    ids = JSON.parse(data)['IDS'];
+    for (var i = 0; i < labels.length; i++) {
 
-    //For everthing else, we get correct id's from server and proceed to highlight those id's 
-    //by correlating labels to id's
-    for (var j = 0; j < ids.length; j++) {
-      if (ids[j].length > 0) {
-
-        if (window.cy.$('[id="' + ids[j] + '"]').selected() == false) {
+      if (data[labels[i]].length == 0) {
+        $("#search_error").css("display", "block");
+        $("#search_error_text").append(labels[i] + " not found!<br>");
+        $("#accordion_search").accordion({
+            collapsible: true,
+            heightStyle: "content"
+        });
+        $("#search_terms").html(oldHtml);
+      }
+      for (var j = 0; j < data[labels[i]].length; j++) {
+        if (window.cy.$('[id="' + data[labels[i]][j] + '"]').selected() == false) {
           // Select the specified element and don't allow the user to unselect it until button is clicked again
-          if (window.cy.$('[id="' + ids[j] + '"]').isEdge()) {
-            window.cy.$('[id="' + ids[j] + '"]').css({'line-color': 'blue', 'line-style': 'dotted', 'width': 10});
-            highlightedTerms.push(ids[j]);
+          if (window.cy.$('[id="' + data[labels[i]][j] + '"]').isEdge()) {
+            window.cy.$('[id="' + data[labels[i]][j] + '"]').css({'line-color': 'blue', 'line-style': 'dotted', 'width': 10});
+            displayLink = true;
           } else {
-            window.cy.$('[id="' + ids[j] + '"]').css({'border-width': 10, 'border-color': 'blue'});
-            highlightedTerms.push(ids[j])
+            window.cy.$('[id="' + data[labels[i]][j] + '"]').css({'border-width': 10, 'border-color': 'blue'});
+            displayLink = true;
           }
-          // Append a new button for every search term
-          $("#search_terms").append('<li><a class="search"  id="' + ids[j]  + '" value="' + ids[j] + '">' + labels[j] + '<b style="color: red;">  X</b></a></li>');
-          $("#search").val("");
+
+          if (search_type == 'partial_search') {
+            labels[i].replace(" ", "")
+            if (partialDistinction.indexOf(labels[i]) == -1) {
+              partialDistinction.push(labels[i]);
+            }
+          } else {
+            if (exactDistinction.indexOf(labels[i]) == -1) {
+              exactDistinction.push(labels[i]);
+            }
+          }
         }
       }
     }
 
-    var linkToGraph = document.URL.substring(0, document.URL.indexOf('?'));
-    var layout = getQueryVariable('layout');
-    var search = getQueryVariable('search');
-    var displayLink = false;
-    if (layout) {
-      linkToGraph += '?layout=' + layout;
+    if ((displayLink == true && partialDistinction.length > 0) || (displayLink == true && exactDistinction.length > 0)) {
 
-      if (search) {
-        linkToGraph += '&search=';
-      }
-    } else if (search) {
-      linkToGraph += '?search=' + search;
-    } else {
-      linkToGraph += '?search=';
-    }
+        // var linkToGraph = document.URL.substring(0, document.URL.indexOf('?'));
+        // var layout = getQueryVariable('layout');
 
-    if (highlightedTerms.length > 0) {
-      displayLink = true;
-      $("#search_error").css("display", "none");
-    } else {
-      $("#search_error").css("display", "block");
-      $("#search_error_text").text("No elements match your search!");
-      $("#accordion_search").accordion({
-          collapsible: true,
-          heightStyle: "content"
-      });
-      return;
-    }
+        // if (layout) {
+        //   linkToGraph += layout;
+        // }
 
-    for (var z = 0; z < highlightedTerms.length; z++) {
-      if (highlightedTerms[z].indexOf('-') > -1) {
-        highlightedTerms[z] = highlightedTerms[z].replace('-', ':');
-      }
-      if (search) {
-        linkToGraph += ',' + highlightedTerms[z];
-      } else {
-        if (z == highlightedTerms.length - 1) {
-          linkToGraph += highlightedTerms[z];
+
+        // if (search_type == 'partial_search' || partialDistinction.length > 0 || highlighted[0].length > 0) {
+        //   if (layout) {
+        //     linkToGraph += '&partial_search=';
+        //   } else {
+        //     linkToGraph += '?partial_search=';
+        //   }
+        // }
+
+
+        // for (var i = 0; i < highlighted[0].length; i++) {
+        //   linkToGraph += highlighted[0][i] + ',';
+        // }
+
+        for (var x = 0; x < partialDistinction.length; x++) {
+          partialDistinction[x].replace(" ", "");
+          $("#search_terms").append('<li><a class="search"  id="' + data[partialDistinction[x]]  + '" value="partial_' + partialDistinction[x] + '">' + partialDistinction[x] + '*<b style="color: red;">  X</b></a></li>');
+          if (x < partialDistinction.length - 1) {
+            // linkToGraph += partialDistinction[x] + ',';           
+          } else {
+            // linkToGraph += partialDistinction[x];       
+          }
+        }
+
+        // if (search_type == 'full_search' || exactDistinction.length > 0) {
+        //   if (layout && partialDistinction.length > 0 || partialDistinction.length > 0 || highlighted[0].length > 0) {
+        //     linkToGraph += '&full_search=';
+        //   } else {
+        //     linkToGraph += '?full_search=';
+        //   }
+        // }
+
+        // for (var i = 0; i < highlighted[1].length; i++) {
+        //   linkToGraph += highlighted[1][i] + ',';
+        // }
+
+        for (var x = 0; x < exactDistinction.length; x++) {
+          exactDistinction[x].replace(" ", "");
+          $("#search_terms").append('<li><a class="search"  id="' + data[exactDistinction[x]]  + '" value="exact_' + exactDistinction[x] + '">' + exactDistinction[x] + '<b style="color: red;">  X</b></a></li>');
+          // if (x < exactDistinction.length - 1) {
+          //   linkToGraph += exactDistinction[x] + ',';           
+          // } else {
+          //   linkToGraph += exactDistinction[x];       
+          // }
+        }
+
+        var linkToGraph = document.URL.substring(0, document.URL.indexOf('?'));
+        var layout = getQueryVariable('layout');
+
+        var highlighted = getHighlightedTerms();
+
+
+        if (layout) {
+          linkToGraph += layout;
+
+          if (highlighted[0].length > 0) {
+            linkToGraph += '&partial_search=';
+            for (var i = 0; i < highlighted[0].length; i++) {
+              if (i < highlighted[0].length - 1) {
+                linkToGraph += highlighted[0][i] + ',';
+              } else {
+                linkToGraph += highlighted[0][i];
+              }
+            }
+          }
+
+          if (highlighted[1].length > 0) {
+            linkToGraph += '&full_search=';
+            for (var i = 0; i < highlighted[1].length; i++) {
+              if (i < highlighted[1].length - 1) {
+                linkToGraph += highlighted[1][i] + ',';
+              } else {
+                linkToGraph += highlighted[1][i];
+              }
+            }
+          }
         } else {
-          linkToGraph += highlightedTerms[z] + ',';
-        }
-      }
-    }
+          if (highlighted[0].length > 0) {
+            linkToGraph += '?partial_search=';
+            for (var i = 0; i < highlighted[0].length; i++) {
+              if (i < highlighted[0].length - 1) {
+                linkToGraph += highlighted[0][i] + ',';
+              } else {
+                linkToGraph += highlighted[0][i];
+              }
+            }
+          }
 
-    if (displayLink) {
-      $("#url").attr('href', linkToGraph);
-      $("#url").text("Link to this graph with highighted elements");
-      $(".test").css("height", $(".test").height + 30);
+          if (highlighted[1].length > 0 && highlighted[0].length > 0) {
+            linkToGraph += '&full_search=';
+            for (var i = 0; i < highlighted[1].length; i++) {
+              if (i < highlighted[1].length - 1) {
+                linkToGraph += highlighted[1][i] + ',';
+              } else {
+                linkToGraph += highlighted[1][i];
+              }
+            }
+          } else {
+              if (highlighted[1].length > 0) {
+                linkToGraph += '&full_search=';
+                for (var i = 0; i < highlighted[1].length; i++) {
+                  if (i < highlighted[1].length - 1) {
+                    linkToGraph += highlighted[1][i] + ',';
+                  } else {
+                    linkToGraph += highlighted[1][i];
+                  }
+                }
+              }
+          }
+        }
+
+        $("#url").attr('href', linkToGraph);
+        $("#url").text("Link to this graph with distinguished elements");
+        $(".test").css("height", $(".test").height + 30);
+        $("#search").val("");
+
     }
+  }
   });
 }
 
@@ -732,28 +893,20 @@ function searchValues(labels) {
  */
 function getHighlightedTerms() {
   // Create a url with all the highlighted terms
-  var highlightedTerms = new Array();
-  var linkToGraph = ""
+  var partialHighlightedTerms = new Array();
+  var fullHighlightedTerms = new Array();
+
   // Go through all of the highlighted terms
   $(".search").each(function (index) {
-    if (highlightedTerms.indexOf($(this).attr('id')) == -1) {
-      highlightedTerms.push($(this).attr('id'));
-    }
+      var value = $(this).attr('value').split('_');
+      if (value[0] == 'partial' && partialHighlightedTerms.indexOf(value[1]) == -1) {
+        partialHighlightedTerms.push(value[1]);
+      } else if (value[0] == 'exact' && fullHighlightedTerms.indexOf(value[1]) == -1) {
+        fullHighlightedTerms.push(value[1]);
+      }
   });
 
-  for (var i = 0; i < highlightedTerms.length; i++) {
-
-    if (highlightedTerms[i].indexOf('-') > -1) {
-      highlightedTerms[i] = highlightedTerms[i].replace('-', ':');
-    }
-
-    if (i == highlightedTerms.length - 1) {
-      linkToGraph += highlightedTerms[i];
-    } else {
-      linkToGraph += highlightedTerms[i] + ',';
-    }
-  }
-  return linkToGraph
+  return [partialHighlightedTerms, fullHighlightedTerms];
 }
 
 
@@ -794,13 +947,13 @@ function splitTerms(term) {
 //Gets query variables from the url
 function getQueryVariable(variable)
 {
-       var query = window.location.search.substring(1);
-       var vars = query.split("&");
-       for (var i=0;i<vars.length;i++) {
-               var pair = vars[i].split("=");
-               if(pair[0] == variable){return pair[1];}
-       }
-       return(false);
+   var query = window.location.search.substring(1);
+   var vars = query.split("&");
+   for (var i=0;i<vars.length;i++) {
+           var pair = vars[i].split("=");
+           if(pair[0] == variable){return pair[1];}
+   }
+   return(false);
 }
 
 // Returns all the id's that are not <= k value
@@ -845,9 +998,11 @@ function applyMax(graph_layout) {
 }
 
 //Unselects a specified term from graph
-function unselectTerm(term) {
-  window.cy.$('[id="' + term + '"]').removeCss();
-  // window.cy.$('[id="' + term + '"]').unselect();
+function unselectTerm(terms) {
+  terms = terms.split(',');
+  for (var i = 0; i < terms.length; i++) {
+    window.cy.$('[id="' + terms[i] + '"]').removeCss();
+  }
 }
 
 function getLayoutFromQuery() {
