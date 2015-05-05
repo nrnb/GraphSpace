@@ -369,7 +369,6 @@ $(document).ready(function() {
       linkToGraph = /*'?layout=' + */$(this).attr('id') + ',';
 
       var labels = $("#search").val().split(',');
-      console.log(labels[0].length);
 
       if ($("#partial_search").is(':checked')) {
         if (labels.length > 0 && labels[0].length > 0) {
@@ -467,7 +466,6 @@ $(document).ready(function() {
       linkToGraph += '?layout=' + $(this).attr('href') + ',';
 
       var labels = $("#search").val().split(',');
-      console.log(labels[0].length);
 
       if ($("#partial_search").is(':checked')) {
         if (labels.length > 0 && labels[0].length > 0) {
