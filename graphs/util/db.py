@@ -4,7 +4,6 @@ from datetime import datetime
 import sys
 import bcrypt
 import json
-from graphs.util.json_converter import convert_json
 from operator import itemgetter
 from itertools import groupby
 from collections import Counter, defaultdict
@@ -21,6 +20,8 @@ URL_PATH = settings.URL_PATH
 
 ##################################################################
 # This section contains methods to populate tables on startup
+
+
 
 # --------------- Edge Insertions -----------------------------------
 
@@ -102,6 +103,79 @@ def insert_all_edges_from_json():
 			con.close()
 
 # --------------- End Edge Insertions --------------------------------
+
+def convert_json(original_json):
+    '''
+        Converts original_json that's used in Cytoscape Web
+        such that it is compatible with the new Cytoscape.js
+
+        See: http://cytoscape.github.io/cytoscape.js/
+
+        Original json structure used for Cytoscape Web:
+        {
+            "metadata": {
+
+            },
+
+            "graph": {
+                "data": {
+                    "nodes": [ 
+                        { "id": "node1", "label": "n1", ... },
+                        { "id": "node2", "label": "n2", ... },
+                        ...
+                    ],
+                    "edges": [ 
+                        { "id": "edge1", "label": "e1", ... },
+                        { "id": "edge2", "label": "e2", ... },
+                        ...
+                    ]
+                }
+            }
+        }
+
+        New json structure:
+        {
+            "metadata": {
+
+            },
+
+            "graph": {
+                "nodes": [
+                    {"data": {"id": "node1", "label": "n1", ...}},
+                    {"data": {"id": "node2", "label": "n2", ...}},
+                    ...
+                ],
+                "edges": [
+                    {"data": {"id": "edge1", "label": "e1", ...}},
+                    {"data": {"id": "edge2", "label": "e2", ...}},
+                    ...
+                ]
+            }
+        }
+    '''
+
+    #parse old json data
+    old_json = json.loads(original_json)
+    old_nodes = old_json['graph']['data']['nodes']
+    old_edges = old_json['graph']['data']['edges']
+
+    new_nodes, new_edges = [], []
+
+    #format node and edge data
+    for node in old_nodes:
+        new_nodes.append({"data": node})
+
+    for edge in old_edges:
+        new_edges.append({"data": edge})
+
+    #build the new json
+    new_json = {}
+    new_json['metadata'] = old_json['metadata']
+    new_json['graph'] = {}
+    new_json['graph']['nodes'] = new_nodes
+    new_json['graph']['edges'] = new_edges
+
+    return json.dumps(new_json, indent=4)
 
 def add_everyone_to_password_reset():
 	'''
@@ -186,13 +260,13 @@ def validate_json(jsonString):
 
 	# If any of the above errors has > 0 length, we have an error
 	if len(edgeError) > 0:
-		jsonErrors += edgeError + '\n'
+		jsonErrors += edgeError
 	if len(nodeError) > 0:
-		jsonErrors += nodeError + '\n'
+		jsonErrors += nodeError
 	if len(nodeUniqueIDError) > 0:
-		jsonErrors += nodeUniqueIDError + '\n'
+		jsonErrors += nodeUniqueIDError
 	if len(nodeCheckShape) > 0:
-		jsonErrors += nodeCheckShape + '\n'
+		jsonErrors += nodeCheckShape
 
 	return jsonErrors
 
@@ -210,7 +284,7 @@ def checkUniqueID(elements):
 		if element['data']['id'] not in id_map:
 			id_map.append(element['data']['id'])
 		else:
-			return "Error: " + element['data']['id'] + " for a node is duplicated!"
+			return element['data']['id'] + " for a node is duplicated!"
 
 	return ""
 
@@ -225,7 +299,7 @@ def checkShapes(elements):
 
 	for element in elements:
 		if element['data']['shape'] not in allowed_shapes:
-			return "Error: illegal shape: " + element['data']['shape'] + ' for a node'
+			return "illegal shape: " + element['data']['shape'] + ' for a node'
 
 	return ""
 
@@ -246,7 +320,7 @@ def propertyInJSON(elements, properties, elementType):
 		element_data = element['data']
 		for element_property in properties:
 			if element_property not in element_data:
-				return "Error: Property " + element_property +  " not in JSON for " + elementType
+				return "Property " + element_property +  " not in JSON for " + elementType
 		
 			met_all_properties.append(element_property)
 
@@ -1136,11 +1210,11 @@ def find_nodes(uid, search_type, search_word, view_type, cur):
 
 	elif search_type == 'full_search':
 		if view_type == 'my graphs':
-			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.label = ? n.user_id = ?', (search_word, uid))
+			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.label = ? and n.user_id = ?', (search_word, uid))
 			node_labels = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, node_labels)
 
-			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.label = ? n.node_id = ?', (search_word, uid))
+			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.node_id = ? and n.user_id = ?', (search_word, uid))
 			node_ids = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, node_ids)
 		
@@ -1154,11 +1228,11 @@ def find_nodes(uid, search_type, search_word, view_type, cur):
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, shared_ids)
 
 		else:
-			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.label = ? and n.public = 1', (search_word, ))
+			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.label = ? and n.public = 1', ( search_word, ))
 			public_labels = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, public_labels)
 
-			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.node_id = ? and n.public = 1', (search_word, ))
+			cur.execute('select n.graph_id, n.node_id || " (" || n.label || ")", n.label, n.modified, n.user_id, n.public from node as n where n.node_id = ? and n.public = 1', ( search_word, ))
 			public_ids = cur.fetchall()
 			intial_graph_with_nodes = add_unique_to_list(intial_graph_with_nodes, public_ids)
 
@@ -2355,7 +2429,7 @@ def share_graph_with_group(owner, graph, groupId, groupOwner):
 			if isMember != None or isOwner != None:
 				cur.execute('insert into group_to_graph values(?, ?, ?, ?)', (groupId, groupOwner, owner, graph))
 				con.commit()
-				return "Graph successfully shared!"
+				return None
 			else:
 				return "You are not a member of this group!"
 		else:
@@ -2391,7 +2465,7 @@ def unshare_graph_with_group(owner, graph, groupId, groupOwner):
 		if graph_owner != None and graph_in_group != None:
 			cur.execute('delete from group_to_graph where group_id=? and group_owner=? and graph_id=? and user_id=?', (groupId, groupOwner, graph, owner))
 			con.commit()
-			return "Graph successfully unshared!"
+			return None
 		else:
 			return "You don't own this graph or graph isn't shared with the group yet!"
 
@@ -3456,3 +3530,45 @@ def delete_all_graphs_for_tag(tagname, username):
 		if con:
 			con.close()
 					
+def usernameMismatchError():
+	'''
+		Returns response telling user that their usernames (from the URL and username field in POST request)
+		do not match
+	'''
+	return throwError(400, "Usernames do not match!")
+
+def userNotFoundError():
+	'''
+		Returns response telling user that their username and password combination is not found.
+	'''
+	return throwError(401, "Username/Password is not recognized!")
+
+def throwError(statusCode, error):
+	'''
+		Returns response to any error.
+	'''
+	return constructResponse(statusCode, None, error)
+
+def sendMessage(statusCode, message):
+	'''
+		Returns response to sucessful request.
+	'''
+	return constructResponse(statusCode, message, None)
+
+def constructResponse(statusCode, message, error):
+	'''
+		Constructs a response to send to the user.
+
+		:param statusCode: Status coe of the request
+		:param message: Message to send to the user
+		:param error: Error to display to the user
+		:return <Message>
+	'''
+	response = {"StatusCode": statusCode}
+
+	if message != None:
+		response['Message'] = message
+	else:
+		response['Error'] = error
+
+	return response
