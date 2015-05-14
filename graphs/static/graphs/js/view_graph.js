@@ -12,6 +12,8 @@ $(document).ready(function() {
     window.cy = cytoscape({
       container: $('#csjs')[0],
 
+      // ** NOTE: REPLACE - WITH _ SO CYTOSCAPEJS WILL RENDER PROPERTIES
+
       //Style properties of NODE body
       style: cytoscape.stylesheet()
       .selector('node[width]').css({
@@ -213,8 +215,6 @@ $(document).ready(function() {
       .selector('edge[mid_target_arrow_fill]').css({
         'mid-target-arrow-fill': 'data(mid_target_arrow_fill)'
       })
-
-
 
       .selector('node').css({
         'text-valign': 'center'
@@ -1211,15 +1211,15 @@ function setDefaultNodeProperties(nodeJSON) {
       nodeData['shape'] = nodeData['shape'].toLowerCase();
     }
 
-    if (nodeData['color'] == undefined) {
-      nodeData['color'] = "yellow";
+    if (nodeData['background_color'] == undefined) {
+      nodeData['background_color'] = "yellow";
     } else {
-       var hexCode = colourNameToHex(nodeData['color']);
+       var hexCode = colourNameToHex(nodeData['background_color']);
        if (hexCode != false) {
-        nodeData['color'] = hexCode;
+        nodeData['background_color'] = hexCode;
        } else {
-        if (isHexaColor(addCharacterToHex(nodeData['color']))) {
-          nodeData['color'] = addCharacterToHex(nodeData['color']);
+        if (isHexaColor(addCharacterToHex(nodeData['background_color']))) {
+          nodeData['background_color'] = addCharacterToHex(nodeData['background_color']);
         }
        }
     }
