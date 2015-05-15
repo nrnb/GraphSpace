@@ -1196,14 +1196,13 @@ function setDefaultNodeProperties(nodeJSON) {
       if (nodeData['shape'].toLowerCase() == 'diamond') {
         nodeData['shape'] = 'octagon';
       } else if (nodeData['shape'] == 'square') {
-        if (nodeData['label'].length == 0) {
+        if (nodeData['content'].length == 0) {
           nodeData['shape'] = 'rectangle';
           nodeData['height'] = 20;
           nodeData['width'] = 20;
         } else {
           nodeData['shape'] = "rectangle"
         }
-
       } else {
         nodeData['shape'] = 'ellipse';
       }
