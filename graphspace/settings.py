@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -69,7 +70,17 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'graphspace.db'),
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'graphspace_db',
+    #     'USER': 'graphspace_admin',
+    #     'PASSWORD': 'murali',
+    #     'HOST': '127.0.0.1',
+    #     'PORT': '5432',
+    # }
 }
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -97,6 +108,10 @@ EMAIL_PORT = 587
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
+)
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
