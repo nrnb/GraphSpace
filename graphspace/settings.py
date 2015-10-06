@@ -22,15 +22,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = 'io#=lvucky-+r=8hif7vl7kv@y(iv6=b0sjk@x9885t(4)%2i0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False 
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+ADMINS = (('Divit Singh', 'dsingh5270@gmail.com'))
 
 # GLOBAL VALUES FOR DATABASE AND PATHS
 DB_FULL_PATH = '/home/ubuntu/GraphSpace/graphspace.db'
-URL_PATH = "http://ec2-52-5-177-0.compute-1.amazonaws.com/" 
+URL_PATH = "http://graphspace.org/" 
 DATABASE_LOCATION = 'sqlite:///' + DB_FULL_PATH
 
 # Application definition
