@@ -319,17 +319,6 @@ $(document).ready(function() {
             testNode.style("background-color", "#D8D8D8");
             testNode.style("text-outline-color", "#D8D8D8");
             testNode.style("border-color", "#D8D8D8");
-
-            // "background_color": "#D8D8D8", 
-            //         "border_color": "#D8D8D8", 
-            //         "content": "PDGFRB\n90", 
-            //         "height": 45, 
-            //         "id": "PDGFRB", 
-            //         "k": 90, 
-            //         "popup": "<b>PDGFRB</b><hr /><b>Edge Rankings</b>: 90.0<hr /><b>Uniprot ID:</b> <a style=\"color:blue\" href=\"http://www.uniprot.org/uniprot/P09619\" target=\"UniProtKB\">P09619</a><br><b>Entrez ID:</b> <a style=\"color:blue\" href=\"http://www.ncbi.nlm.nih.gov/gene/5159\" target=\"EntrezGene\">5159</a><br><b>Search in </b> <a style=\"color:blue\" href=\"http://www.ihop-net.org/UniPub/iHOP/?search=P09619&field=UNIPROT__AC&ncbi_tax_id=9606\" target=\"IHOP\">IHOP</a>", 
-            //         "shape": "triangle", 
-            //         "text_outline_color": "#D8D8D8", 
-            //         "text_outline_width": 4, 
           }
          }
         });
