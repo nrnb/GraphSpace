@@ -24,6 +24,67 @@
         </div>
       </div>
     </div>
+
+    <!-- Confirm Delete of Task -->
+        <div class="modal fade" id="deleteTaskModal" tabindex="-1" role="dialog" aria-labelledby="deleteTaskModal" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title" id="deleteTaskModal">Confirm Ending the task</h4>
+              </div>
+              <div class="modal-body">
+                    
+                <form method="post" class="end_task1" role="form">
+                    <div class="delete_fields">
+                       <h4>Are you sure you want to end this task?</h4>
+                        <br />
+                        <button type="button" name="end_task" id="end_task" class="btn btn-success">End Task</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    </div> 
+                </form>  
+              </div>
+            </div>
+          </div>
+        </div>
+
+    <!-- Task Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="taskModal">Task Information</h4>
+          </div>
+          <div class="modal-body">
+                
+            <form method="post" class="add_task" role="form">
+                <p id="problem" style="color: red;"></p>
+                <div class="delete_fields">
+                    <div class="control-group">
+                        <label for="task_owner">Task Owner</label>
+                        <input id="task_owner" readonly class="form-control" maxlength="32" type="text" name="task_owner" autocomplete="off"/>
+                    </div>
+                    <div class="control-group">
+                        <label for="graph_name">Graph Name</label>
+                        <input id="graph_name" readonly class="form-control" maxlength="32" type="text" name="graph_name" autocomplete="off"/>
+                    </div>
+                    <div class="control-group">
+                        <label for="task_description">Task Description</label>
+                        <input id="task_description" class="form-control" maxlength="32" type="text" name="task_description" autocomplete="off"/>
+                    </div>
+                    <div class="control-group">
+                        <label for="task_note">Task Notes</label>
+                        <br>
+                        <textarea class="form-control" id="task_note" name="task_note"></textarea>
+                    </div>
+                    <br />
+                    <button type="button" name="task_add" id="task_add" class="btn btn-success">Add Task</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                </div> 
+            </form>  
+          </div>
+        </div>
+      </div>
+    </div>
     
     <div class="row">
         <div class="col-xs-6 col-sm-9">
@@ -293,8 +354,12 @@
                             <td><div class="test">Private</div></td>
                         {% endif %} 
                         {% if g.5 == uid %}
-                            <td><div class="test"><button class="btn btn-success launch_task" id="{{g.0}}" value="{{g.4}}">New Task</button></div></td>
-                            <td><div class="test"><button class="btn btn-default delete_graph" id="{{g.0}}" value="{{g.4}}">Delete</button></div></td>
+                            {% if g.6 == False %}
+                                <td><div class="test"><button class="btn btn-success launch_task" id="{{g.0}}" value="{{g.5}}">New Task</button></div></td>
+                            {% else %}
+                                <td><div class="test"><button class="btn btn-success end_task" id="{{g.0}}" value="{{g.5}}">End Task</button></div></td>
+                            {% endif %}
+                            <td><div class="test"><button class="btn btn-default delete_graph" id="{{g.0}}" value="{{g.5}}">Delete</button></div></td>
                         {% else %}
                             <td></td>
                         {% endif %}
@@ -317,7 +382,11 @@
                             <td><div class="test">Private</div></td>
                         {% endif %}
                         {% if g.3 == uid %}
-                            <td><div class="test"><button class="btn btn-success launch_task" id="{{g.0}}" value="{{g.3}}">New Task</button></div></td>
+                            {% if g.4 == False %}
+                                <td><div class="test"><button class="btn btn-success launch_task" id="{{g.0}}" value="{{g.3}}">New Task</button></div></td>
+                            {% else %}
+                                <td><div class="test"><button class="btn btn-success end_task" id="{{g.0}}" value="{{g.3}}">End Task</button></div></td>
+                            {% endif %}
                             <td><div class="test"><button class="btn btn-default delete_graph" id="{{g.0}}" value="{{g.3}}">Delete</button></div></td>
                         {% else %}
                             <td></td>

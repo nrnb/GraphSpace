@@ -7,16 +7,18 @@ $(document).ready(function() {
 		var graph_id = $(this).attr('id');
 		var user_id = $(this).val();
 
-		$.post("/end_task_through_ui/", {
+		//User confirms they want to end the task
+		$("#end_task").on('click', function(e) {
+			$.post("/end_task_through_ui/", {
 			"graph_id": graph_id,
 			"user_id": user_id
-		}, function(data) {
+			}, function(data) {
 
-	        if (data.Error) {
-	          return alert(data.Error);
-	        }
-	        window.location.reload();
+		        if (data.Error) {
+		          return alert(data.Error);
+		        }
+		        window.location.reload();
+			});
 		});
 	});
-
 });
