@@ -52,14 +52,18 @@
 		                    		<th></th>
 		                		</tr>
 		          				{% for task in current_page %}
-	          						<td><a href="{{url}}tasks/{{task.user_id}}/{{task.graph_id}}">{{task.graph_id}}</a></td>
-	          						<td>{{task.user_id}}</td>
-	          						<td>{{task.description}}</td>
-	          						<!-- <td>{{task.created}}</td> -->
-	          						<td>{{task.expires}}</td>
-	          						{% if uid == task.user_id %}
-	          							<td><button class="btn btn-danger end_task" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
-	          						{% endif %}
+		          					<tr>
+		          						<td><a href="{{url}}tasks/{{task.user_id}}/{{task.graph_id}}">{{task.graph_id}}</a></td>
+		          						<td>{{task.user_id}}</td>
+		          						<td>{{task.description}}</td>
+		          						<!-- <td>{{task.created}}</td> -->
+		          						<td>{{task.expires}}</td>
+		          						{% if uid == task.user_id %}
+		          							<td><button class="btn btn-danger end_task" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
+		          						{% else %}
+		          							<td></td>
+		          						{% endif %}
+	          						</tr>
 		          				{% endfor %}
 							</table>
 						</div>
