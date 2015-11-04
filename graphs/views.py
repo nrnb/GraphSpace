@@ -311,17 +311,34 @@ def _graphs_page(request, view_type):
             context.update(pager_context)
             for i in xrange(len(context['current_page'].object_list)):
                 graph = list(context['current_page'][i])
-
+                tasks_exists = False
                 graph_tags = []
+
+                graph_id = ""
+                user_id = ""
                 if request.GET.get(search_type):
                     graph_tags = db.get_all_tags_for_graph(graph[0], graph[5])
                     graph[1] = graph_tags
+
+                    graph_id = graph[0]
+                    user_id = graph[5]
+
                 else:
+
+                    graph_id = graph[0]
+                    user_id = graph[2]
+
                     graph_tags = db.get_all_tags_for_graph(graph[0], graph[2])
                     graph.insert(1, graph_tags)
 
-                context['current_page'].object_list[i] = graph
+                task = db.get_task(user_id, graph_id)
 
+                if task != None:
+                    tasks_exists = True
+
+                graph.append(tasks_exists)
+                context['current_page'].object_list[i] = graph
+                print context['current_page'].object_list[i]
     # reset the search form
     context['search_form'] = SearchForm(placeholder='Search...')
 
