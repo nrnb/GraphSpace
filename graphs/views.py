@@ -103,6 +103,130 @@ def download(request):
         # redirect to the main page
         return HttpResponseRedirect('/index/')
 
+def tasks(request, view_type):
+
+    context = login(request)
+
+    # See if user is logged in
+    uid = request.session['uid']
+
+    if uid == None: 
+        context['Error'] = "Please create an account or log in to GraphSpace to view all available tasks!"
+        return render(request, 'graphs/error.html', context)
+
+    my_tasks = db.get_all_tasks_for_user(uid)
+    available_tasks = db.get_available_tasks()
+
+    if view_type == "my_tasks":
+        context['tasks_list'] = my_tasks
+    else:
+        context['tasks_list'] = available_tasks
+
+    context['my_tasks'] = len(my_tasks)
+    context['available_tasks'] = len(available_tasks)
+    context['view_type'] = view_type
+
+    if context['tasks_list'] != None:
+        pager_context = pager(request, context['tasks_list'])
+        if type(pager_context) is dict:
+            context.update(pager_context)
+
+    return render(request, 'graphs/tasks.html', context)
+
+def view_task(request, uid, gid):
+    '''
+        Allows logged in users to view the graph.
+    '''
+
+    context = login(request)
+
+    if "uid" not in request.session:
+        context['Error'] = "Please create an account or log in to GraphSpace to upload tasks!"
+        return render("graphs/error.html", context)
+
+    graph = db.getGraphInfo(uid, gid)
+
+    context['graph'] = db.retrieve_cytoscape_json(graph.json)
+
+    json_data = json.loads(context['graph'])
+    #add sidebar information to the context for display
+    if 'description' in json_data['metadata']:
+        context['description'] = json_data['metadata']['description'] + "</table></html>"
+    else:
+        context['description'] = ""
+
+    # id of the owner of this graph
+    context['owner'] = uid
+
+    if 'name' in json_data['metadata']:
+        context['graph_name'] = json_data['metadata']['name']
+    else:
+        context['graph_name'] = ''
+
+    # graph id
+    context['graph_id'] = gid
+
+    if len(json_data['graph']['edges']) > 0 and 'k' in json_data['graph']['edges'][0]['data']:
+        context['filters'] = True
+
+    return render(request, "graphs/view_task_graph.html", context)
+
+def my_tasks(request):
+    '''
+        View to show all tasks user owns.
+    '''
+    return tasks(request, "my_tasks")
+
+def available_tasks(request):
+    '''
+        View to show all the available tasks.
+    '''
+    return tasks(request, "available_tasks")
+
+def end_task_through_ui(request):
+    if request.POST:
+
+        uid = request.session['uid']
+
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+
+        error = db.end_task(user_id, graph_id)
+
+        if error != None:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+        else:
+            return HttpResponse(json.dumps(db.sendMessage(200, "Task Deleted!")), content_type="application/json")
+
+def upload_task_through_ui(request):
+    '''
+        Uploads task through the UI.
+    '''
+
+    if request.POST:
+
+        uid = request.session['uid']
+
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+        notes = request.POST['notes']
+        description = request.POST['description']
+
+        error = db.create_new_task(user_id, graph_id, notes, description)
+
+        if error == None:
+            return HttpResponse(json.dumps(db.sendMessage(201, "Task Launched!")), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
 def graphs(request):
     '''
         Render the My Graphs page

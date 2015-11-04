@@ -62,6 +62,29 @@ $(document).ready(function() {
   });
 
   /**
+  * TEMPORARY: REMOVE AFTER MORE WORK HAS BEEN DONE.
+  * Launches a new task on clicked graph.
+  * Automatically populates notes etc. for now.
+  */
+  $(".launch_task").click(function(e) {
+    var graph_id = $(this).attr('id');
+    var user_id = $(this).val();
+
+    //Upload new task
+    $.post('/upload_new_task_through_ui/', {
+        'user_id': user_id,
+        'graph_id': graph_id,
+        'notes': "hard-coded notes",
+        'description': "hard-coded desription"
+      }, function(data) {
+        if (data.Error) {
+          return alert(data.Error);
+        }
+        alert(data.Message);
+      });
+  });
+
+  /**
    * Appends appropriate terms to the url depending on what is being searched for
    * For example, it appends ?queryTerm if there are no query terms, or it appends &queryTerm=
    * to the end of the current url if a queryterm already exists.

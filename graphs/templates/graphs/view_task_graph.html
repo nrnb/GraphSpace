@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load staticfiles %}
+
+
+<script type="text/javascript">
+    var graph_json = {{ graph|safe }};
+    // var layout = {{ layout_to_view|safe }};
+    window.cy;
+</script>
+
+<div class="container-fluid csjs_container">
+
+	<div id="graph_title" ><h1 id="title" style="display:none;">{{graph_name}}</h1></div>
+    <div class="csjs" id="csjs"></div>
+
+</div>
+
+<script type="text/javascript" src="{% static 'graphs/js/view_task_graph.js' %}"></script> 
+
+<!--jQuery UI, needed for side menu -->
+<script type="text/javascript" src="{% static 'graphs/js/jquery-ui.min.js' %}"></script>
+
+<link rel="stylesheet" href="{% static 'graphs/css/cytoscape.js-panzoom.css' %}">
+<!-- jQuery UI style sheet -->
+<link rel="stylesheet" href="{% static 'graphs/css/jquery-ui.min.css' %}">
+
+<link rel="stylesheet" href="{% static 'graphs/font-awesome/css/font-awesome.css' %}">
+
+
+<!-- JSON support for IE (needed to use JS API) -->
+<script type="text/javascript" src="{% static 'graphs/json2.min.js' %}"></script>
+
+<!-- CytoscapeJS API-->
+<script type="text/javascript" src="{% static 'graphs/js/cytoscape.js' %}"></script>
+
+<!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
+<script type="text/javascript" src="{% static 'graphs/js/cytoscape.js-panzoom.js' %}"></script>
+
+<!-- stylesheet for view_graph page -->
+
+<!-- cytoscape web wrapper for viewing graph -->
+
+<!-- stylesheet for view_graph page -->
+<link rel="stylesheet" href="{% static 'graphs/css/view_graph.css' %}">
+
+<!-- stylesheet for side menus -->
+<link rel="stylesheet" type="text/css" href="{% static 'graphs/css/side_menu.css' %}">
+
+
+{% endblock %}

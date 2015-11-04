@@ -8,7 +8,7 @@ import uuid
 from collections import Counter, defaultdict
 from operator import itemgetter
 from itertools import groupby
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.core.mail import send_mail
 import sqlite3 as lite
 
@@ -183,6 +183,123 @@ def add_everyone_to_password_reset():
 		return None
 	
 	db_session.close()
+
+def end_task(user_id, graph_id):
+	'''
+		Deletes the specific task.
+	'''
+	# Get the specific task
+	task = get_task(user_id, graph_id)
+
+	# If it doesn't exist, prompt user
+	if task == None:
+		return "Task does not exist!"
+
+	# Create connection to database
+	db_session = data_connection.new_session()
+
+	# Delete the task
+	db_session.delete(task)
+	db_session.commit()
+
+	db_session.close()
+
+	return None
+
+def get_all_tasks_for_user(user_id):
+	'''
+		Returns all (live or expired) tasks that the user created.
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		# Get all user owned tasks
+		tasks = db_session.query(models.Task).filter(models.Task.user_id == user_id).all()
+		db_session.close()
+		return tasks
+	except NoResultFound:
+		db_session.close()
+		return None
+
+def get_available_tasks():
+	'''
+		Returns all (live or expired) tasks that the user created.
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		# Get all user owned tasks
+		tasks = db_session.query(models.Task).all()
+		db_session.close()
+		return tasks
+	except NoResultFound:
+		db_session.close()
+		return None
+
+def get_task(user_id, graph_id):
+	'''
+		Gets task of specific graph that user owns.
+		Only one graph may be a task at one time.
+
+		@param user_id: Owner of graph
+		@param graph_id: ID of graph
+	'''
+
+	db_session = data_connection.new_session()
+
+	# Get task that has graph_id and user_id if it exists
+	task = db_session.query(models.Task).filter(models.Task.user_id == user_id).filter(models.Task.graph_id == graph_id).first()
+	if task == None:
+		db_session.close()
+		return None
+	else:
+		db_session.close()
+		return task
+
+def create_new_task(user_id, graph_id, notes, description):
+	'''
+		Creates new task for the user.
+
+		@param user_id: Owner of graph
+		@param graph_id: Graph ID
+		@param notes: Notes attached to task
+		@param description: Description of task
+	'''
+
+	# Check to see if task for graph already exists
+	task = get_task(user_id, graph_id)
+
+	# If task exists, prompt user that only one task may be attached per graph
+	if task != None:
+		return "Task for : " + graph_id + " owned by: " + user_id + " already exists.  Please delete the previous task attached to this graph before creating a new task."
+	
+	if user_id == None or len(user_id) == 0:
+		return "Please enter valid user ID"
+
+	if graph_id == None or len(graph_id) == 0:
+		return "Please enter valid graph ID"
+
+	if notes == None or len(notes) == 0:
+		return "Please enter some notes"
+
+	if description == None or len(description) == 0:
+		return "Please enter a description of the task"
+
+	#create a new db session
+	db_session = data_connection.new_session()
+
+	# Add new task to database that expires in 3 days
+	new_task = models.Task(user_id = user_id, graph_id = graph_id, notes = notes, description = description, created = datetime.now(), expires = datetime.now() + timedelta(days=3))
+	db_session.add(new_task)
+	
+	db_session.commit()
+	db_session.close()
+
+	return None
 
 def add_user_to_password_reset(email, db_session=None):
 	'''

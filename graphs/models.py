@@ -14,6 +14,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Table, Index, Foreig
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import TIMESTAMP
+from sqlalchemy.types import Text
 from django.db import models
 from django.conf import settings
 from sqlalchemy import create_engine
@@ -47,6 +48,17 @@ Base = declarative_base()
 #=================== End of Junction Tables ===================
 
 # ================== Table Definitions ===================
+class Task(Base):
+    '''The class representing the schema of the task table.'''
+    __tablename__ = 'task'
+
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    description = Column(String, nullable = True)
+    created = Column(TIMESTAMP, nullable = False)
+    expires = Column(TIMESTAMP, nullable = False)
+    notes = Column(Text, nullable = False)
+
 class GroupToUser(Base):
     '''The class representing the schema of the group_to_user table.'''
     __tablename__ = 'group_to_user'

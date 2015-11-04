@@ -264,6 +264,7 @@
                     </th>  
                     <th>Visibility</th>
                     <th></th>
+                    <th></th>
                 </tr>
                 {% for g in current_page %}
                 <tr> 
@@ -292,6 +293,7 @@
                             <td><div class="test">Private</div></td>
                         {% endif %} 
                         {% if g.5 == uid %}
+                            <td><div class="test"><button class="btn btn-success launch_task" id="{{g.0}}" value="{{g.4}}">New Task</button></div></td>
                             <td><div class="test"><button class="btn btn-default delete_graph" id="{{g.0}}" value="{{g.4}}">Delete</button></div></td>
                         {% else %}
                             <td></td>
@@ -315,6 +317,7 @@
                             <td><div class="test">Private</div></td>
                         {% endif %}
                         {% if g.3 == uid %}
+                            <td><div class="test"><button class="btn btn-success launch_task" id="{{g.0}}" value="{{g.3}}">New Task</button></div></td>
                             <td><div class="test"><button class="btn btn-default delete_graph" id="{{g.0}}" value="{{g.3}}">Delete</button></div></td>
                         {% else %}
                             <td></td>
