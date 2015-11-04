@@ -229,15 +229,27 @@ $(document).ready(function() {
       	this.elements().selectify();
 
       	// load the graph to display
-	    this.load(graph_json.graph, function(e) {
-	        console.log('working');
-	      }, function() {
-	        console.log('done');
-	    });
+  	    this.load(graph_json.graph, function(e) {
+  	        console.log('working');
+  	      }, function() {
+  	        console.log('done');
+  	    });
 
 	    // enable user panning (hold the left mouse button to drag
       	// the screen)
       	this.userPanningEnabled(false);
+
+        $("#move_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+          var tempPosition = testNode.renderedPosition();
+          testNode.renderedPosition({x:tempPosition.x + 50, y:tempPosition.y});
+         }
+         // var testNode = window.cy.elements()[0];
+         // var tempPosition = testNode.renderedPosition();
+         // testNode.renderedPosition({x:tempPosition.x + 50, y:tempPosition.y});
+        });
 
       }
     });

@@ -14,6 +14,19 @@
 	<div id="graph_title" ><h1 id="title" style="display:none;">{{graph_name}}</h1></div>
     <div class="csjs" id="csjs"></div>
 
+    <div class="side_menu">
+    	<div id="accordion_manipulate" class="accordion">
+            <h3>Manipulate<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
+            <div class="accordion_content test">
+                        <div style="text-align: center;" class="input-group">
+                        	<button class="btn btn-info" name="move_button" id="move_button">Move</button>
+                        </div>
+                <ul class="nav nav-pills" id="search_terms">
+                </ul>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script type="text/javascript" src="{% static 'graphs/js/view_task_graph.js' %}"></script> 
