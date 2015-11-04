@@ -914,8 +914,7 @@ function searchValues(search_type, labels) {
             window.cy.$('[id="' + data[labels[i]][j] + '"]').css({'line-color': 'blue', 'line-style': 'dotted', 'width': 10});
             displayLink = true;
           } else {
-            window.cy.$('[id="' + data[labels[i]][j] + '"]').select();
-            // window.cy.$('[id="' + data[labels[i]][j] + '"]').css({'border-width': 10, 'border-color': 'blue'});
+            window.cy.$('[id="' + data[labels[i]][j] + '"]').css({'border-width': 10, 'border-color': 'blue'});
             displayLink = true;
           }
 

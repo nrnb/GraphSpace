@@ -239,16 +239,107 @@ $(document).ready(function() {
       	// the screen)
       	this.userPanningEnabled(false);
 
-        $("#move_button").click(function (e) {
+        $("#move_green_right_button").click(function (e) {
          e.preventDefault();
          for (var i = 0; i < window.cy.elements().length; i++) {
           var testNode = window.cy.elements()[i];
-          var tempPosition = testNode.renderedPosition();
-          testNode.renderedPosition({x:tempPosition.x + 50, y:tempPosition.y});
+
+          var nodeColor = testNode.style("background-color");
+
+          if (nodeColor == "#01DF01") {
+            var tempPosition = testNode.renderedPosition();
+            testNode.renderedPosition({x:tempPosition.x + 50, y:tempPosition.y});  
+          }
          }
-         // var testNode = window.cy.elements()[0];
-         // var tempPosition = testNode.renderedPosition();
-         // testNode.renderedPosition({x:tempPosition.x + 50, y:tempPosition.y});
+        });
+
+        $("#move_green_square_down_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+          var nodeColor = testNode.style("background-color");
+          var nodeShape = testNode.style("shape");
+
+          if (nodeColor == "#01DF01") {
+            if (nodeShape == "rectangle") {
+              var tempPosition = testNode.renderedPosition();
+            testNode.renderedPosition({x:tempPosition.x, y:tempPosition.y + 50});  
+            }
+          }
+         }
+        });
+
+        $("#select_purple_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+
+          var nodeColor = testNode.style("background-color");
+
+          if (nodeColor == "#AC58FA") {
+            var tempPosition = testNode.renderedPosition();
+            testNode.select();
+          }
+         }
+        });
+
+        $("#select_circle_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+
+          var nodeShape = testNode.style("shape");
+
+          if (nodeShape == "ellipse") {
+            testNode.select();
+          }
+         }
+        });
+
+        $("#move_selected_down_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+          var nodeColor = testNode.style("background-color");
+          var nodeShape = testNode.style("shape");
+
+          if (testNode.selected()) {
+            var tempPosition = testNode.renderedPosition();
+            testNode.renderedPosition({x:tempPosition.x, y:tempPosition.y + 50});  
+          }
+         }
+        });
+
+        $("#change_selected_color_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+
+          if (testNode.selected()) {
+            testNode.style("background-color", "#D8D8D8");
+            testNode.style("text-outline-color", "#D8D8D8");
+            testNode.style("border-color", "#D8D8D8");
+
+            // "background_color": "#D8D8D8", 
+            //         "border_color": "#D8D8D8", 
+            //         "content": "PDGFRB\n90", 
+            //         "height": 45, 
+            //         "id": "PDGFRB", 
+            //         "k": 90, 
+            //         "popup": "<b>PDGFRB</b><hr /><b>Edge Rankings</b>: 90.0<hr /><b>Uniprot ID:</b> <a style=\"color:blue\" href=\"http://www.uniprot.org/uniprot/P09619\" target=\"UniProtKB\">P09619</a><br><b>Entrez ID:</b> <a style=\"color:blue\" href=\"http://www.ncbi.nlm.nih.gov/gene/5159\" target=\"EntrezGene\">5159</a><br><b>Search in </b> <a style=\"color:blue\" href=\"http://www.ihop-net.org/UniPub/iHOP/?search=P09619&field=UNIPROT__AC&ncbi_tax_id=9606\" target=\"IHOP\">IHOP</a>", 
+            //         "shape": "triangle", 
+            //         "text_outline_color": "#D8D8D8", 
+            //         "text_outline_width": 4, 
+          }
+         }
+        });
+
+        $("#unselect_button").click(function (e) {
+         e.preventDefault();
+         for (var i = 0; i < window.cy.elements().length; i++) {
+          var testNode = window.cy.elements()[i];
+          testNode.unselect();
+         }
         });
 
       }
