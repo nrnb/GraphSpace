@@ -70,18 +70,39 @@ $(document).ready(function() {
     var graph_id = $(this).attr('id');
     var user_id = $(this).val();
 
-    //Upload new task
-    $.post('/upload_new_task_through_ui/', {
-        'user_id': user_id,
-        'graph_id': graph_id,
-        'notes': "hard-coded notes",
-        'description': "hard-coded desription"
-      }, function(data) {
-        if (data.Error) {
-          return alert(data.Error);
+    $("#task_owner").val(user_id);
+    $("#graph_name").val(graph_id);
+
+    $("#taskModal").modal('toggle');
+
+    $("#task_add").on('click', function(e) {
+
+        var description = $("#task_description").val();
+        var note = $("#task_note").val();
+
+        if (description.length == 0) {
+          $("#problem").text("Please enter a description for the task!");
+          return;
         }
-        alert(data.Message);
-      });
+
+        if (note.length == 0) {
+          $("#problem").text("Please enter some notes for the task!");
+          return;
+        }
+
+        //Upload new task
+        $.post('/upload_new_task_through_ui/', {
+            'user_id': user_id,
+            'graph_id': graph_id,
+            'notes': note,
+            'description': description
+          }, function(data) {
+            if (data.Error) {
+              return alert(data.Error);
+            }
+            window.location.reload();
+          });
+    });
   });
 
   /**

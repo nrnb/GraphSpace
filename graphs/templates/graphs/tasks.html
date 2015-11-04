@@ -4,6 +4,28 @@
 
 	<div class="container graphs">
 
+		<!-- Confirm Delete of Task -->
+		<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModal" aria-hidden="true">
+	      <div class="modal-dialog">
+	        <div class="modal-content">
+	          <div class="modal-header">
+	            <h4 class="modal-title" id="deleteModal">Confirm Delete</h4>
+	          </div>
+	          <div class="modal-body">
+	                
+	            <form method="post" class="end_task1" role="form">
+	                <div class="delete_fields">
+	                   <h4>Are you sure you want to end this task?</h4>
+	                    <br />
+	                    <button type="button" name="end_task" id="end_task" class="btn btn-success">End Task</button>
+	                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+	                </div> 
+	            </form>  
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+
 		<!-- Contains Top nav pills for navigation -->
 		<div class="row">
 	        <div class="col-xs-6 col-sm-9">
@@ -59,7 +81,7 @@
 		          						<!-- <td>{{task.created}}</td> -->
 		          						<td>{{task.expires}}</td>
 		          						{% if uid == task.user_id %}
-		          							<td><button class="btn btn-danger end_task" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
+		          							<td><button class="btn btn-default end_task" data-toggle="modal" data-target="#deleteModal" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
 		          						{% else %}
 		          							<td></td>
 		          						{% endif %}
