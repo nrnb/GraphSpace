@@ -331,6 +331,9 @@ def _graphs_page(request, view_type):
                     graph_tags = db.get_all_tags_for_graph(graph[0], graph[2])
                     graph.insert(1, graph_tags)
 
+                cur_graph = db.get_graph(user_id, graph_id)
+                graph.append(cur_graph.public)
+
                 task = db.get_task(user_id, graph_id)
 
                 if task != None:
@@ -338,7 +341,7 @@ def _graphs_page(request, view_type):
 
                 graph.append(tasks_exists)
                 context['current_page'].object_list[i] = graph
-                print context['current_page'].object_list[i]
+
     # reset the search form
     context['search_form'] = SearchForm(placeholder='Search...')
 
