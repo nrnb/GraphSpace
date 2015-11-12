@@ -9,31 +9,105 @@
     window.cy;
 </script>
 
+<!-- Save Modal -->
+        <div class="modal fade" id="layout_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Save Layout</h4>
+              </div>
+              <div class="modal-body">
+
+                <form method="post" id="layout_form" class="layout_form" role="form">
+                    <div class="layout_fields">
+                       <div class="control-group">
+                            <label for="layout_name">Layout Name</label>
+                            <input id="layout_name" class="form-control" type="text" name="layout_name" autocomplete="off"/>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <button name="save_layout" id="save_layout" class="btn btn-success">Save Layout</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+                    </div> 
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
 <div class="container-fluid csjs_container">
 
-	<div id="graph_title" ><h1 id="title" style="display:none;">{{graph_name}}</h1></div>
+    <div id="graph_title" ><h1 id="title" style="display:none;">{{graph_name}}</h1></div>
     <div class="csjs" id="csjs"></div>
 
     <div class="side_menu">
-    	<div id="accordion_manipulate" class="accordion">
-            <h3>Manipulate<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
+        <div id="accordion_information" class="accordion">
+            <h3>Task Information<a class="help" href="../../../help/#task_information" style="float: right; color: #0000FF;">Help</a></h3>
             <div class="accordion_content test">
-                        <div style="text-align: center;" class="input-group">
-                        	<button class="btn btn-success" name="move_green_right_button" id="move_green_right_button">Move Green Right</button>
-                            <button class="btn btn-success" name="move_green_square_down_button" id="move_green_square_down_button">Move Green Square Down</button>
-                            <button class="btn btn-info" name="select_purple_button" id="select_purple_button">Select All Purple</button>
-                            <button class="btn btn-info" name="select_circle_button" id="select_circle_button">Select All Circles</button>
-                            <button class="btn btn-info" name="move_selected_down_button" id="move_selected_down_button">Move Selected Down</button>
-                            <button class="btn btn-success" name="change_selected_color_button" id="change_selected_color_button">Change Selected Color</button>
-                            <button class="btn btn-danger" name="unselect_button" id="unselect_button">Reset Selection</button>
-                        </div>
-                <ul class="nav nav-pills" id="search_terms">
-                </ul>
+                <div class="input-group">
+                    <b>Description of Task</b><br><br>
+                    <p>{{task.description}}</p>
+                    <hr>
+                    <b>Notes for Task</b><br><br>
+                    <p>{{task.notes}}</p>
+                </div>
             </div>
         </div>
-    </div>
+    	<div id="accordion_design" class="accordion">
+            <h3>Design Graph<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
+            <div class="accordion_content test">
+                <div style="text-align: center;" class="input-group">
+                	<button class="btn btn-success" name="move_green_right_button" id="move_green_right_button">Move Green Right</button>
+                    <button class="btn btn-success" name="move_green_square_down_button" id="move_green_square_down_button">Move Green Square Down</button>
+                    <button class="btn btn-info" name="select_purple_button" id="select_purple_button">Select All Purple</button>
+                    <button class="btn btn-info" name="select_circle_button" id="select_circle_button">Select All Circles</button>
+                    <button class="btn btn-info" name="move_selected_down_button" id="move_selected_down_button">Move Selected Down</button>
+                    <button class="btn btn-success" name="change_selected_color_button" id="change_selected_color_button">Change Selected Color</button>
+                    <button class="btn btn-danger" name="unselect_button" id="unselect_button">Reset Selection</button>
+                </div>
+            </div>
+        </div>
 
-</div>
+        <div id="accordion_layout" class="accordion">
+            <h3>Layouts<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
+            <div class="accordion_content test">
+                <div style="text-align: center;" class="input-group">
+                    <div>
+                      <button class="btn btn-default" data-toggle="modal" data-target="#layout_modal">Save Layout</button>
+                    </div>
+                    <hr>
+                    <div class="tabbable">
+                        <ul class="nav nav-tabs" id="layout-tabs">
+                          <a id='layout_link' href=""></a>
+                          <li id="auto"><a href="#builtin" data-toggle="tab">Designed Layouts</a></li>
+                          <li id="manual"><a href="#custom" data-toggle="tab">My Layouts</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane" id="builtin">
+                                <br/>
+                                <ul class="nav nav-pills">
+                                   <!--  <li id="lr"><a id="layout-radial" class="layout_buttons" href="default_circle">Circle</a></li>
+                                    <li class="active" id="lt"><a id="layout-cola" class="layout_buttons" href="default_cola">Constraint-based Layout</a></li>
+                                    <li id="ldf"><a id="layout-force-directed" class="layout_buttons" href="default_concentric">Concentric</a></li>
+                                    <li id="lt"><a id="layout-cose" class="layout_buttons" href="default_cose">Spring Embedder</a></li>
+                                    <li id="lt"><a id="layout-tree" class="layout_buttons" href="default_arbor">Force Directed</a></li>
+                                    <li id="lc"><a id="layout-circle" class="layout_buttons" href="default_breadthfirst">Tree</a></li>  --> 
+                                </ul>  
+                            </div>
+                            <div class="tab-pane" id="custom">
+                                <br/>
+                                <ul class="nav nav-pills">
+                                    
+                                </ul>  
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
 
 <script type="text/javascript" src="{% static 'graphs/js/view_task_graph.js' %}"></script> 
 

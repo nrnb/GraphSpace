@@ -145,6 +145,39 @@ def convert_json(original_json):
 
     return json.dumps(new_json, indent=4)
 
+def save_task_layout(uid, gid, loggedIn, layout_name, json):
+	'''
+		Saves a layout for a task.
+
+		@param uid: Owner of graph
+		@param gid: Graph ID
+		@param loggedIn: Logged in user, creator of task layout
+		@param layout_name: Name of layout to save
+	'''
+
+	# Check if graph exists
+	graph = get_graph(uid, gid)
+
+	if graph == None: 
+		return "Graph does not exist!"
+
+	# Get task if exists
+	task = get_task(uid, gid)
+
+	if task == None:
+		return "Can't save layout for task that is not live!"
+
+	# Get database connection
+	db_session = data_connection.new_session()
+
+	# Check to see if layout with same owner for same graph with same layout name already exists
+	layout_exists = db_session.query(models.TaskLayout.layout_name).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.owner_id == loggedIn).filter(models.TaskLayout.name == layout_name).first()
+
+	if layout_exists != None:
+		return "Layout name: " + layout_name + " has already been created by you.  Please create a new name for this layout"
+	else:
+		new_layout = models.TaskLayout(user_id = uid, graph_id = gid, owner_id = loggedIn, layout_name = layout_name, json = json)
+
 def add_everyone_to_password_reset():
 	'''
 		Adds all users to password reset table (cold-start).

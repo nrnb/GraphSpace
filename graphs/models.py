@@ -158,6 +158,39 @@ class GraphTag(Base):
     __tablename__ = 'graph_tag'
     tag_id = Column(String, primary_key = True) #id
 
+class TaskLayout(Base):
+    '''
+        Table of Task Layouts to specify how the graphs are viewed on GraphSpace.
+        User created layouts will be stored in this table.
+    '''
+    __tablename__ = 'task_layout'
+
+    # A descriptive name for the layout, provided by the owner_id when creating the i
+    # layout in GraphSpace.
+    layout_name = Column(String, nullable = False, primary_key = True)
+
+    # The id of the user who created the layout. The foreign key constraint ensures 
+    # this person is present in the 'user' table. Not that owner_id need not be the 
+    # same as user_id since (graph_id, user_id) uniquely identify the graph. 
+    # In other words, the owner_id can be the person other than the one who created 
+    # the graph (user_id). An implicit rule is that owner_id must belong to some 
+    # group that this graph belongs to. However, the database does not enforce this 
+    # constraint explicitly. 
+    owner_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = False, primary_key = True)
+    # id of the graph that the layout is for
+    graph_id = Column(String, nullable = False, primary_key = True)
+    # id of the user who owns the graph specified by graph_id
+    user_id = Column(String, nullable = False, primary_key = True)
+    # graph layout data in JSON format
+    json = Column(String, nullable = False)
+
+    # SQLAlchemy's way of creating a multi-column foreign key constraint.
+    __table_args__ = (ForeignKeyConstraint([graph_id, user_id], [Graph.graph_id, Graph.user_id], ondelete="CASCADE", onupdate="CASCADE"), {})
+
+
+
+
+
 class Layout(Base):
     '''
         Table of Layouts to specify how the graphs are viewed on GraphSpace.

@@ -222,6 +222,14 @@ $(document).ready(function() {
       }),
 
       ready: function() {
+
+        //If there is a title for this graph,
+        //Add it to the screen and adjust side margin
+        if ($("#title").text().length > 0) {
+          $("#graph_title").html("<h1>" + $("#title").text() + "</h1>");
+          $(".side_menu").css("margin-top", -50);
+        }
+
       	//Adding in the panzoom functionality 
       	this.panzoom();
 
@@ -332,6 +340,53 @@ $(document).ready(function() {
         });
 
       }
+    });
+
+    $("#auto").addClass('active');
+    $("#manual").removeClass('active');
+
+    $('#builtin').addClass('active');
+    $('#custom').removeClass('active');
+
+    $("#manual").on('click', function(e) {
+      $("#auto").removeClass('active');
+      $("#manual").addClass('active');
+
+      $('#builtin').removeClass('active');
+      $('#custom').addClass('active');
+    });
+
+    //Allow a user to select multiple elements by dragging cursor across
+    cy.boxSelectionEnabled(true);
+
+    $('#accordion_design').accordion({
+        collapsible: true,
+        active: false 
+    });
+
+    $("#accordion_information").accordion({
+        collapsible: true,
+        active: false 
+    });
+
+    $("#accordion_layout").accordion({
+        collapsible: true,
+        active: false 
+    });
+
+    $("#save_layout").click(function(e) {
+        e.preventDefault();
+
+        var layoutName = $("layout_name").val();
+        
+        if (layoutName == null || layoutName.length == 0) {
+          alert("Please enter some text!");
+          return;
+        }
+
+        $.post("../../../deleteLayout/", {
+
+        });
     });
 
 });
