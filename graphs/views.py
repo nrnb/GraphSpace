@@ -36,6 +36,7 @@ def index(request):
     # If they try to log on, we first check to see if their password needs to be reset (for whatever reason).
     # The password_reset table contains all the users whose passwords need to be updated.
     # Once the user has updated their password, their name is removed from the password_reset table
+
     if request.method == 'POST' and db.need_to_reset_password(request.POST['user_id']) != None:
         context = {}
         
@@ -946,13 +947,9 @@ def register(request):
             hashed_pw = bcrypt.hashpw(
                             register_form.cleaned_data['password'], 
                             bcrypt.gensalt())
-            activated = 1
-            activate_code = 'activate_code'
-            public = 0
-            unlisted = 0
             admin = 0
 
-            db.insert_user(user_id, hashed_pw, activated, activate_code, public, unlisted, admin)
+            db.insert_user(user_id, hashed_pw, admin)
 
             # should display success message. not there yet.
             return HttpResponseRedirect('/index/')
@@ -1275,7 +1272,6 @@ def add_member_through_ui(request):
     # If request is a POST request, add it to the server
     if request.method == 'POST':
         result = db.add_user_to_group(request.POST['member'], request.POST['groupOwner'], request.POST['groupId'])
-        print result
         return HttpResponse(json.dumps(db.sendMessage(200, result)), content_type="application/json")
 
 def remove_member_through_ui(request):
