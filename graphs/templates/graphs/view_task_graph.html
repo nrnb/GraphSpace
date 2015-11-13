@@ -5,7 +5,7 @@
 
 <script type="text/javascript">
     var graph_json = {{ graph|safe }};
-    // var layout = {{ layout_to_view|safe }};
+    var layout = {{ layout_to_view|safe }};
     window.cy;
 </script>
 
@@ -101,7 +101,17 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in my_layouts %}
-                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}">{{o.layout_name}}</a>
+                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}">{{o.layout_name}}<br>
+                                        <button class="btn btn-default layout_links submit" id="{{url}}" rel="tooltip" data-toggle="tooltip" title="Submit Layout For Review" value="{{o}}" style="float: left;">
+                                          <span class="glyphicon glyphicon-remove"></span>
+                                        </button>
+                                        <div style="clear: both;"></div>
+                                        </a>
+                                        <!-- <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}">{{o.layout_name}}<br /><br />
+                                        <button class="btn btn-default layout_links remove" id="{{url}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o}}" style="float: left;">
+                                          <span class="glyphicon glyphicon-remove"></span>
+                                        </button></a> -->
+
                                     {% endfor %}
                                 </ul>  
                             </div>
@@ -112,6 +122,7 @@
 
         </div>
 
+<script type="text/javascript" src="{% static 'graphs/js/base.js' %}"></script> 
 <script type="text/javascript" src="{% static 'graphs/js/view_task_graph.js' %}"></script> 
 
 <!--jQuery UI, needed for side menu -->

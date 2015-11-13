@@ -221,6 +221,9 @@ $(document).ready(function() {
           'source-arrow-color': '#ff0000'
       }),
 
+      // default layout set to be arbor
+      layout: getLayoutFromQuery(),
+
       ready: function() {
 
         //If there is a title for this graph,
@@ -422,5 +425,143 @@ $(document).ready(function() {
           }
         });
     });
+
+
+    function getLayoutFromQuery() {
+
+    //The following code retrieves the specified layout
+    //of a graph to be displayed.
+    //Some of them are pre-defined. Check Cytoscapejs.org
+    var graph_layout = {
+      name: 'random',
+      padding: 10,
+      fit:true,
+      animate: false,
+      // maxSimulationTime: 1000
+    };
+
+    $("#auto").addClass('active');
+    $("#manual").removeClass('active');
+
+    $('#builtin').addClass('active');
+    $('#custom').removeClass('active');
+
+    var query = getQueryVariable("layout");
+
+    if (query == "default_breadthfirst") {
+      graph_layout = {
+        name: "breadthfirst",
+        padding: 10,
+        fit: true,
+        avoidOverlap: true,
+        animate: false
+      }
+    } else if (query == "default_concentric") {
+       graph_layout = {
+        name: "concentric",
+        fit: true,
+        padding: 10,
+        avoidOverlap: true,
+        animate: false
+      }
+    } else if (query == "default_circle") {
+       graph_layout = {
+        name: "circle",
+        padding: 10,
+        fit: true,
+        avoidOverlap: true,
+        animate: false
+      }
+    } else if (query == "default_dagre") {
+       graph_layout = {
+        name: "dagre",
+        fit: true,
+        padding: 10,
+        animate: true,
+        nodeSep: 50,
+        edgeSep: 50
+      }
+    } else if (query == 'default_cose') {
+      graph_layout = {
+        name: "cose",
+        padding: 10,
+        fit: true,
+        animate: true,
+        nodeOverlap: 30
+      }
+    } else if (query == "default_cola") {
+      graph_layout = {
+        name: "cola",        
+        fit: true,
+        nodeSpacing: function( node ){ return 20; },
+        padding: 10,
+        animate: true,
+        avoidOverlap: true
+      }
+    }  else if (query == "default_arbor") {
+      graph_layout = {
+        name: "arbor",
+        padding: 30,
+        fit: false,
+        animate: true,
+        maxSimulationTime: 1000
+      }
+    }  else if (query == "default_springy") {
+      graph_layout = {
+        name: 'springy',
+
+        animate: true, // whether to show the layout as it's running
+        maxSimulationTime: 4000, // max length in ms to run the layout
+        ungrabifyWhileSimulating: false, // so you can't drag nodes during layout
+        fit: true, // whether to fit the viewport to the graph
+        padding: 30, // padding on fit
+        boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+        random: false, // whether to use random initial positions
+        infinite: false, // overrides all other options for a forces-all-the-time mode
+        ready: undefined, // callback on layoutready
+        stop: undefined, // callback on layoutstop
+
+        // springy forces
+        stiffness: 400,
+        repulsion: 400,
+        damping: 0.5
+      }
+    } else {
+
+      $("#auto").removeClass('active');
+      $("#manual").addClass('active');
+
+      $('#builtin').removeClass('active');
+      $('#custom').addClass('active');
+
+       if (layout && layout.json != null) {
+        graph_layout = {
+          name: 'preset',
+          positions: JSON.parse(layout.json)
+        };
+      } else if (query) {
+          alert("Layout does not exist or has not been shared yet!");
+          var loc = window.location.href;
+          var baseLoc = loc.substring(0, loc.indexOf("?"));
+          window.location.href = baseLoc;
+      }
+    }
+
+    console.log(graph_layout);
+    return graph_layout;
+}
+
+//Gets query variables from the url
+function getQueryVariable(variable)
+{
+   var query = window.location.search.substring(1);
+   var vars = query.split("&");
+   for (var i=0;i<vars.length;i++) {
+           var pair = vars[i].split("=");
+           if(pair[0] == variable){return pair[1];}
+   }
+   return(false);
+}
+
 
 });

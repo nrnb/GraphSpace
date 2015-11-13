@@ -279,7 +279,7 @@ def get_all_submitted_tasks_for_graph(graph_owner, graph_id):
 	db_session = data_connection.new_session()
 
 	try:
-		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).all()
+		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.submitted == 1).all()
 		db_session.close()
 		return submitted_layouts
 	except NoResultFound:
@@ -901,6 +901,69 @@ def get_default_layout_name(uid, gid):
 	else:
 		return None
 
+def set_task_layout_context(request, context, uid, gid):
+	layout_to_view = None
+
+	layout = request.GET.get('layout', '')
+
+	# if there is a layout specified in the request (query term), then render that layout
+	if len(layout) > 0:
+
+		if layout != 'default_breadthfirst' and layout != 'default_concentric' and layout != 'default_dagre' and layout != 'default_circle' and layout != 'default_cose' and layout != 'default_cola' and layout != 'default_arbor' and layout != 'default_springy':
+			
+			# Check to see if the user is logged in
+		    logged_in = None
+		    if 'uid' in context:
+		    	logged_in = context['uid']
+
+	    		# Based on the logged in user and the graph, check to see if 
+		    	# there exists a layout that matches the query term
+                task_layout = get_task_layout_for_graph(layout, gid, uid, logged_in)
+
+			    # If the layout either does not exist or the user is not allowed to see it, prompt them with an erro
+                if task_layout == None:
+			    	context['Error'] = "Layout: " + request.GET.get('layout') + " either does not exist or " + uid + " has not shared this layout yet.  Click <a href='" + URL_PATH + "graphs/" + uid + "/" + gid + "'>here</a> to view this graph without the specified layout."
+                else:
+					# Return layout JSON
+	                layout_to_view = json.dumps({"json": task_layout})
+
+	else:
+		# If there is no layout specified, simply return the default layout
+		# if it exists
+		layout_to_view = get_default_layout(uid, gid)
+		context['default_layout'] = get_default_layout_id(uid, gid)
+		context['layout_name'] = get_default_layout_name(uid, gid)
+
+	# Pass information to the template
+	context['default_layout_name'] = get_default_layout_name(uid, gid)
+	context['layout_to_view'] = layout_to_view
+	context['layout_urls'] = URL_PATH + "graphs/" + uid + "/" + gid + "?layout="
+
+	return context
+
+def get_task_layout_for_graph(layout_name, gid, uid, logged_in):
+	'''
+		Gets task layout for graph.
+
+		@param layout_name: Name of layout
+		@param gid: ID Of graph
+		@param uid: Owner of graph
+		@param logged_in: Logged in user
+	'''
+
+	# Get Database connection
+	db_session = data_connection.new_session()
+
+	# Get layout for graph if it exists
+	task_layout = db_session.query(models.TaskLayout).filter(models.TaskLayout.layout_name == layout_name).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.user_id == uid).first()
+	
+	if task_layout != None:
+		# See if logged in user can view the layout
+		if task_layout.submitted == 1 or task_layout.owner_id == logged_in:
+			return cytoscapePresetLayout(json.loads(task_layout.json))
+
+	return None
+
 def set_layout_context(request, context, uid, gid):
 	'''
 		Sets the entire context of a graph to be viewed.  This is needed for sending information to the front-end
@@ -960,14 +1023,6 @@ def set_layout_context(request, context, uid, gid):
 	# Pass information to the template
 	context['layout_to_view'] = layout_to_view
 	context['layout_urls'] = URL_PATH + "graphs/" + uid + "/" + gid + "?layout="
-
-	search_type = None
-
-	# Get the search term to highlight once we load the layout for the graph
-	if 'partial_search' in request.GET:
-	    search_type = 'partial_search'
-	elif 'full_search' in request.GET:
-	    search_type = 'full_search'
 
     # If user is logged in, display my layouts and shared layouts
 	if 'uid' in context:

@@ -147,38 +147,4 @@ $(document).ready(function() {
 		}
 	});
 
-	/*
-		--- TO DELETE ---
-
-		DELETE THIS CODE AT CODE INSPECTION 
-		$("#add_graph").click(function() {
-			window.location.href = "/graphs/create";
-		});
-
-		$("input[name='shared']").on("change", function () {
-		    if (this.value === 'private') {
-		    	$("#shared_groups").css('display', 'block');
-		    } else {
-		    	$("#shared_groups").css('display', 'none');
-		    }
-		});
-
-		$("#submit_graph").click(function(e) {
-			e.preventDefault();
-			var graphName = $("#graph_name").val();
-			var tags = $("#tags").val();
-			var priv = $("#shared")
-			var pub = $("#shared2");
-			var groups = $("#groups").val();
-
-			if (!graphName || graphName.length == 0) {
-				alert("Please enter a name for the graph!");
-				return;
-			}
-
-			$("#add_graph_form").submit();
-		});
-
-		--- END DELETE ---
-	*/
 });

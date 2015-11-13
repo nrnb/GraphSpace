@@ -189,6 +189,9 @@ def view_task(request, uid, gid):
     # logged in user
     context['logged_in'] = request.session['uid']
 
+    # Set the layout context
+    context = db.set_task_layout_context(request, context, uid, gid)
+
     # Get all layouts that logged in user created
     context['my_layouts'] = db.get_all_layouts_for_task_for_user(uid, gid, request.session['uid'])
 
