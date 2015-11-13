@@ -171,12 +171,17 @@ def save_task_layout(uid, gid, loggedIn, layout_name, json):
 	db_session = data_connection.new_session()
 
 	# Check to see if layout with same owner for same graph with same layout name already exists
-	layout_exists = db_session.query(models.TaskLayout.layout_name).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.owner_id == loggedIn).filter(models.TaskLayout.name == layout_name).first()
+	layout_exists = db_session.query(models.TaskLayout.layout_name).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.owner_id == loggedIn).filter(models.TaskLayout.layout_name == layout_name).first()
 
 	if layout_exists != None:
+		db_session.close()
 		return "Layout name: " + layout_name + " has already been created by you.  Please create a new name for this layout"
 	else:
 		new_layout = models.TaskLayout(user_id = uid, graph_id = gid, owner_id = loggedIn, layout_name = layout_name, json = json)
+		db_session.add(new_layout)
+		db_session.commit()
+		db_session.close()
+		return None
 
 def add_everyone_to_password_reset():
 	'''
@@ -258,6 +263,46 @@ def get_available_tasks():
 		tasks = db_session.query(models.Task).all()
 		db_session.close()
 		return tasks
+	except NoResultFound:
+		db_session.close()
+		return None
+
+def get_all_submitted_tasks_for_graph(graph_owner, graph_id):
+	'''
+		Gets all layouts that are submitted by other users
+
+		@param graph_owner: Owner of graph
+		@param graph_id: ID of graph
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).all()
+		db_session.close()
+		return submitted_layouts
+	except NoResultFound:
+		db_session.close()
+		return None
+
+
+def get_all_layouts_for_task_for_user(graph_owner, graph_id, layout_owner):
+	'''
+		Gets all layouts for a task that user has created.
+
+		@param graph_owner: Owner of graph
+		@param graph_id: Id of graph
+		@param layout_owner: Owner of layout
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		my_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.owner_id == layout_owner).all()
+		db_session.close()
+		return my_layouts
 	except NoResultFound:
 		db_session.close()
 		return None

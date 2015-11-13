@@ -323,7 +323,7 @@
                                         {% if o == layout_name %}
                                             <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="{{o}}">
                                         {% else %}
-                                            <a class="list-group-item layout_buttons" href="{{o}}">
+                                            <a class="list-group-item layout_buttons" href="layout={{o}}">
                                         {% endif %}
                                             {{o}}<br /><br />
                                             <button class="btn btn-default layout_links remove" id="{{url}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o}}" style="float: left;">

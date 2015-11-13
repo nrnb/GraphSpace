@@ -183,13 +183,11 @@ class TaskLayout(Base):
     user_id = Column(String, nullable = False, primary_key = True)
     # graph layout data in JSON format
     json = Column(String, nullable = False)
+    # Is this layout submitted for review by the designer?
+    submitted = Column(Integer, nullable = True)
 
     # SQLAlchemy's way of creating a multi-column foreign key constraint.
     __table_args__ = (ForeignKeyConstraint([graph_id, user_id], [Graph.graph_id, Graph.user_id], ondelete="CASCADE", onupdate="CASCADE"), {})
-
-
-
-
 
 class Layout(Base):
     '''

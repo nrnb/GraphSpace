@@ -16,7 +16,7 @@ urlpatterns = patterns('',
         url(r'^upload_new_task_through_ui/$', views.upload_task_through_ui, name='upload_task_through_ui'),
         
         # create layout for task
-        url(r'^save_task_layout/$', views.save_task_layout, name='save_task_layout'),
+        url(r'^save_task_layout_through_ui/$', views.save_task_layout_through_ui, name='save_task_layout_through_ui'),
         
         # delete task
         url(r'^end_task_through_ui/$', views.end_task_through_ui, name='end_task_through_ui'),

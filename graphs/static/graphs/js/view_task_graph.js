@@ -377,15 +377,49 @@ $(document).ready(function() {
     $("#save_layout").click(function(e) {
         e.preventDefault();
 
-        var layoutName = $("layout_name").val();
-        
+        var userId = $("#userId").text();
+        var graphId = $("#graphId").text();
+        var loggedIn = $("#loggedIn").text();
+
+        //Replaces all spaces with '_' character for ease of saving
+        var layoutName = $("#layout_name").val();
+        if (layoutName && layoutName.length > 0) {
+          layoutName = layoutName.replace(" ", "_");
+        }
+
         if (layoutName == null || layoutName.length == 0) {
           alert("Please enter some text!");
           return;
         }
 
-        $.post("../../../deleteLayout/", {
+        //When save is clicked, it gets location of all the nodes and saves it
+        //so that nodes can be placed in this location later on
+        var nodes = window.cy.elements('node');
+        var layout = [];
+        for (var i = 0; i < Object.keys(nodes).length - 2; i++) {
+           var nodeData = {
+            'x': nodes[i]._private.position.x,
+            'y': nodes[i]._private.position.y,
+            'id': nodes[i]._private.data.id
+           };
+           layout.push(nodeData);
+        }
 
+        layout = JSON.stringify(layout);
+
+        //Post information about layout to GraphSpace
+        $.post("../../save_task_layout_through_ui/", {
+          "user_id": userId,
+          "graph_id": graphId,
+          "layout_name": layoutName,
+          "layout": layout
+        }, function( data ) {
+          console.log(data.StatusCode == 201);
+          if (data.StatusCode == 201) {
+            location.reload();
+          } else {
+            alert(data.Error);
+          }
         });
     });
 

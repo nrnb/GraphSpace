@@ -9,6 +9,10 @@
     window.cy;
 </script>
 
+<p id="loggedIn" style="display:none;">{{logged_in}}</p>
+<p id="graphId" style="display:none;">{{graph_id}}</p>
+<p id="userId" style="display:none;">{{user_id}}</p>
+
 <!-- Save Modal -->
         <div class="modal fade" id="layout_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
           <div class="modal-dialog">
@@ -81,25 +85,24 @@
                     <div class="tabbable">
                         <ul class="nav nav-tabs" id="layout-tabs">
                           <a id='layout_link' href=""></a>
-                          <li id="auto"><a href="#builtin" data-toggle="tab">Designed Layouts</a></li>
-                          <li id="manual"><a href="#custom" data-toggle="tab">My Layouts</a></li>
+                          <li id="auto"><a href="#builtin" data-toggle="tab">Submitted</a></li>
+                          <li id="manual"><a href="#custom" data-toggle="tab">Mine</a></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane" id="builtin">
                                 <br/>
                                 <ul class="nav nav-pills">
-                                   <!--  <li id="lr"><a id="layout-radial" class="layout_buttons" href="default_circle">Circle</a></li>
-                                    <li class="active" id="lt"><a id="layout-cola" class="layout_buttons" href="default_cola">Constraint-based Layout</a></li>
-                                    <li id="ldf"><a id="layout-force-directed" class="layout_buttons" href="default_concentric">Concentric</a></li>
-                                    <li id="lt"><a id="layout-cose" class="layout_buttons" href="default_cose">Spring Embedder</a></li>
-                                    <li id="lt"><a id="layout-tree" class="layout_buttons" href="default_arbor">Force Directed</a></li>
-                                    <li id="lc"><a id="layout-circle" class="layout_buttons" href="default_breadthfirst">Tree</a></li>  --> 
+                                    {% for o in submitted_layouts %}
+                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}">{{o.layout_name}} by: {{o.owner_id}}</a>
+                                    {% endfor %}
                                 </ul>  
                             </div>
                             <div class="tab-pane" id="custom">
                                 <br/>
                                 <ul class="nav nav-pills">
-                                    
+                                    {% for o in my_layouts %}
+                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}">{{o.layout_name}}</a>
+                                    {% endfor %}
                                 </ul>  
                             </div>
                         </div>

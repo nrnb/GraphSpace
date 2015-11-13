@@ -183,6 +183,18 @@ def view_task(request, uid, gid):
     # graph id
     context['graph_id'] = gid
 
+    # owner of graph/task 
+    context['user_id'] = uid
+
+    # logged in user
+    context['logged_in'] = request.session['uid']
+
+    # Get all layouts that logged in user created
+    context['my_layouts'] = db.get_all_layouts_for_task_for_user(uid, gid, request.session['uid'])
+
+    # Get all layouts that any other designer submitted for task
+    context['submitted_layouts'] = db.get_all_submitted_tasks_for_graph(uid, gid)
+
     # IF there are elements in the graph, give filters to change k values of graph
     if len(json_data['graph']['edges']) > 0 and 'k' in json_data['graph']['edges'][0]['data']:
         context['filters'] = True
@@ -269,7 +281,7 @@ def save_task_layout_through_ui(request):
         layout_name = request.POST['layout_name']
         layout = request.POST['layout']
 
-        error = upload_task_layout(user_id, graph_id, logged_in, layout_name, layout)
+        error = save_task_layout(user_id, graph_id, logged_in, layout_name, layout)
 
         if error == None:
             return HttpResponse(json.dumps(db.sendMessage(201, "Layout saved for this task!")), content_type="application/json")
