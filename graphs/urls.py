@@ -10,6 +10,28 @@ urlpatterns = patterns('',
         url(r'^index/$', views.index, name='index'),
         url(r'^index/logout/$', views.logout, name='logout'),
         url(r'^download/$', views.download, name='download'),
+                
+
+        # create new task
+        url(r'^upload_new_task_through_ui/$', views.upload_task_through_ui, name='upload_task_through_ui'),
+        
+        # create layout for task
+        url(r'^save_task_layout_through_ui/$', views.save_task_layout_through_ui, name='save_task_layout_through_ui'),
+        
+        # delete task
+        url(r'^end_task_through_ui/$', views.end_task_through_ui, name='end_task_through_ui'),
+
+        # graphs accessible because it is a task open to public
+        url(r'^tasks/(?P<uid>\b[A-Z0-9a-z._%+-]+@[A-Z0-9a-z.-]+\.[A-Za-z]{2,4}\b)/(?P<gid>.+)/$', views.view_task, name='view_task'),
+        url(r'^tasks/(?P<uid>\b[A-Z0-9a-z._%+-]+@[A-Z0-9a-z.-]+\.[A-Za-z]{2,4}\b)/(?P<gid>.+)$', views.view_task, name='view_task'),
+
+        # my tasks page
+        url(r'^tasks/mine/$', views.my_tasks, name='my_tasks'),
+        url(r'^tasks/mine$', views.my_tasks, name='my_tasks'),
+
+        # available tasks page
+        url(r'^tasks/available/$', views.available_tasks, name='available_tasks'),
+        url(r'^tasks/available$', views.available_tasks, name='available_tasks'),
 
         # graphs page
         url(r'^graphs/$', views.graphs, name='graphs'),

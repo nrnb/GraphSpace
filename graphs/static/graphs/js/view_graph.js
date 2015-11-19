@@ -1294,6 +1294,7 @@ function getLayoutFromQuery() {
       }
     }
 
+    console.log(graph_layout);
     return graph_layout;
 }
 

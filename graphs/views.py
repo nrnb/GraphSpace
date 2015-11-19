@@ -104,6 +104,214 @@ def download(request):
         # redirect to the main page
         return HttpResponseRedirect('/index/')
 
+def tasks(request, view_type):
+
+    context = login(request)
+
+    # See if user is logged in
+    uid = request.session['uid']
+
+    if uid == None: 
+        context['Error'] = "Please create an account or log in to GraphSpace to view all available tasks!"
+        return render(request, 'graphs/error.html', context)
+
+    # Get all tasks that the user created
+    my_tasks = db.get_all_tasks_for_user(uid)
+
+    # Get all tasks that are available for user to work on
+    available_tasks = db.get_available_tasks()
+
+    # Sends information about the tasks depending on the view
+    if view_type == "my_tasks":
+        context['tasks_list'] = my_tasks
+    else:
+        context['tasks_list'] = available_tasks
+
+    # Tells front end the number of tasks for each type of view
+    context['my_tasks'] = len(my_tasks)
+    context['available_tasks'] = len(available_tasks)
+    context['view_type'] = view_type
+
+    # If there are a lot of tasks, having paging
+    if context['tasks_list'] != None:
+        pager_context = pager(request, context['tasks_list'])
+        if type(pager_context) is dict:
+            context.update(pager_context)
+
+    return render(request, 'graphs/tasks.html', context)
+
+def view_task(request, uid, gid):
+    '''
+        Allows logged in users to view the graph.
+    '''
+
+    context = login(request)
+
+    if request.session['uid'] == None:
+        context['Error'] = "Please create an account or log in to GraphSpace to work on or create tasks!"
+        return render(request, "graphs/error.html", context)
+
+    # Get the graph being viewed
+    graph = db.getGraphInfo(uid, gid)
+
+    # Get task attached for graph
+    task = db.get_task(uid, gid)
+
+    # Send to template
+    context['task'] = task
+
+    # Send json to template
+    context['graph'] = db.retrieve_cytoscape_json(graph.json)
+
+    # Add description for graph if there is any
+    json_data = json.loads(context['graph'])
+    #add sidebar information to the context for display
+    if 'description' in json_data['metadata']:
+        context['description'] = json_data['metadata']['description'] + "</table></html>"
+    else:
+        context['description'] = ""
+
+    # id of the owner of this graph
+    context['owner'] = uid
+
+    # If json has metadata, put name as a title
+    if 'name' in json_data['metadata']:
+        context['graph_name'] = json_data['metadata']['name']
+    else:
+        context['graph_name'] = ''
+
+    # graph id
+    context['graph_id'] = gid
+
+    # owner of graph/task 
+    context['user_id'] = uid
+
+    # logged in user
+    context['logged_in'] = request.session['uid']
+
+    # Set the layout context
+    context = db.set_task_layout_context(request, context, uid, gid)
+
+    # Get all layouts that logged in user created
+    context['my_layouts'] = db.get_all_layouts_for_task_for_user(uid, gid, request.session['uid'])
+
+    # Get all layouts that any other designer submitted for task
+    context['submitted_layouts'] = db.get_all_submitted_tasks_for_graph(uid, gid)
+
+    # IF there are elements in the graph, give filters to change k values of graph
+    if len(json_data['graph']['edges']) > 0 and 'k' in json_data['graph']['edges'][0]['data']:
+        context['filters'] = True
+
+    return render(request, "graphs/view_task_graph.html", context)
+
+def my_tasks(request):
+    '''
+        View to show all tasks user owns.
+    '''
+    return tasks(request, "my_tasks")
+
+def available_tasks(request):
+    '''
+        View to show all the available tasks.
+    '''
+    return tasks(request, "available_tasks")
+
+def end_task_through_ui(request):
+    if request.POST:
+
+        # Get logged in user
+        uid = request.session['uid']
+
+        # If user is not logged in, forbid this action
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        # End the task for this graph
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+
+        error = db.end_task(user_id, graph_id)
+
+        # If successful, inform the user otherwise throw an error
+        if error != None:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+        else:
+            return HttpResponse(json.dumps(db.sendMessage(200, "Task Deleted!")), content_type="application/json")
+
+def upload_task_through_ui(request):
+    '''
+        Uploads task through the UI.
+    '''
+
+    if request.POST:
+
+        uid = request.session['uid']
+
+        # If not logged in, can't create a new task
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        # Get information about the task
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+        notes = request.POST['notes']
+        description = request.POST['description']
+
+        # Create new task
+        error = db.create_new_task(user_id, graph_id, notes, description)
+
+        # Inform user about the success or failure of new task
+        if error == None:
+            return HttpResponse(json.dumps(db.sendMessage(201, "Task Launched!")), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+def save_task_layout_through_ui(request):
+    
+    if request.POST:
+        uid = request.session['uid']
+
+        # If not logged in, can't create a new task
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+        logged_in = uid
+        layout_name = request.POST['layout_name']
+        layout = request.POST['layout']
+
+        error = save_task_layout(user_id, graph_id, logged_in, layout_name, layout)
+
+        if error == None:
+            return HttpResponse(json.dumps(db.sendMessage(201, "Layout saved for this task!")), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+    else:
+        error = "Please make only POST requests to this path!"
+        return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+def save_task_layout(uid, gid, loggedIn, layout_name, layout):
+
+    if uid == None:
+        return "Please enter the owner of this graph"
+
+    if gid == None:
+        return "Please enter a graph name"
+
+    if loggedIn == None:
+        return "Must be logged in to save layouts for a task"
+
+    if layout_name == None:
+        return "Must provide a name for saving a layout"
+
+    return db.save_task_layout(uid, gid, loggedIn, layout_name, layout)
+
+
 def graphs(request):
     '''
         Render the My Graphs page
@@ -188,15 +396,35 @@ def _graphs_page(request, view_type):
             context.update(pager_context)
             for i in xrange(len(context['current_page'].object_list)):
                 graph = list(context['current_page'][i])
-
+                tasks_exists = False
                 graph_tags = []
+
+                graph_id = ""
+                user_id = ""
                 if request.GET.get(search_type):
                     graph_tags = db.get_all_tags_for_graph(graph[0], graph[5])
                     graph[1] = graph_tags
+
+                    graph_id = graph[0]
+                    user_id = graph[5]
+
                 else:
+
+                    graph_id = graph[0]
+                    user_id = graph[2]
+
                     graph_tags = db.get_all_tags_for_graph(graph[0], graph[2])
                     graph.insert(1, graph_tags)
 
+                cur_graph = db.get_graph(user_id, graph_id)
+                graph.append(cur_graph.public)
+
+                task = db.get_task(user_id, graph_id)
+
+                if task != None:
+                    tasks_exists = True
+
+                graph.append(tasks_exists)
                 context['current_page'].object_list[i] = graph
 
     # reset the search form
@@ -1055,6 +1283,7 @@ def deleteGraph(request):
         jsonData = db.get_graph_json(user_id, graphname)
         if jsonData != None:
             db.delete_graph(request.POST['uid'], request.POST['gid'])
+            db.delete_task(request.POST['uid'], request.POST['gid'])
             return HttpResponse(json.dumps(db.sendMessage(200, "Successfully deleted " + graphname + " owned by " + user_id + '.'), indent=4, separators=(',', ': ')), content_type="application/json")
         else:
             return HttpResponse(json.dumps(db.throwError(404, "No Such Graph Exists."), indent=4, separators=(',', ': ')), content_type="application/json")

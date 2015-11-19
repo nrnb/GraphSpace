@@ -8,7 +8,7 @@ import uuid
 from collections import Counter, defaultdict
 from operator import itemgetter
 from itertools import groupby
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.core.mail import send_mail
 import sqlite3 as lite
 
@@ -29,6 +29,44 @@ data_connection = db_init.db
 # Name of the database that is being used as the backend storage
 DB_NAME = settings.DB_FULL_PATH
 URL_PATH = settings.URL_PATH
+
+def save_task_layout(uid, gid, loggedIn, layout_name, json):
+	'''
+		Saves a layout for a task.
+
+		@param uid: Owner of graph
+		@param gid: Graph ID
+		@param loggedIn: Logged in user, creator of task layout
+		@param layout_name: Name of layout to save
+	'''
+
+	# Check if graph exists
+	graph = get_graph(uid, gid)
+
+	if graph == None: 
+		return "Graph does not exist!"
+
+	# Get task if exists
+	task = get_task(uid, gid)
+
+	if task == None:
+		return "Can't save layout for task that is not live!"
+
+	# Get database connection
+	db_session = data_connection.new_session()
+
+	# Check to see if layout with same owner for same graph with same layout name already exists
+	layout_exists = db_session.query(models.TaskLayout.layout_name).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.owner_id == loggedIn).filter(models.TaskLayout.layout_name == layout_name).first()
+
+	if layout_exists != None:
+		db_session.close()
+		return "Layout name: " + layout_name + " has already been created by you.  Please create a new name for this layout"
+	else:
+		new_layout = models.TaskLayout(user_id = uid, graph_id = gid, owner_id = loggedIn, layout_name = layout_name, json = json)
+		db_session.add(new_layout)
+		db_session.commit()
+		db_session.close()
+		return None
 
 def add_everyone_to_password_reset():
 	'''
@@ -57,6 +95,163 @@ def add_everyone_to_password_reset():
 		return None
 	
 	db_session.close()
+
+def end_task(user_id, graph_id):
+	'''
+		Deletes the specific task.
+	'''
+	# Get the specific task
+	task = get_task(user_id, graph_id)
+
+	# If it doesn't exist, prompt user
+	if task == None:
+		return "Task does not exist!"
+
+	# Create connection to database
+	db_session = data_connection.new_session()
+
+	# Delete the task
+	db_session.delete(task)
+	db_session.commit()
+
+	db_session.close()
+
+	return None
+
+def get_all_tasks_for_user(user_id):
+	'''
+		Returns all (live or expired) tasks that the user created.
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		# Get all user owned tasks
+		tasks = db_session.query(models.Task).filter(models.Task.user_id == user_id).all()
+		db_session.close()
+		return tasks
+	except NoResultFound:
+		db_session.close()
+		return None
+
+def get_available_tasks():
+	'''
+		Returns all (live or expired) tasks that the user created.
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		# Get all user owned tasks
+		tasks = db_session.query(models.Task).all()
+		db_session.close()
+		return tasks
+	except NoResultFound:
+		db_session.close()
+		return None
+
+def get_all_submitted_tasks_for_graph(graph_owner, graph_id):
+	'''
+		Gets all layouts that are submitted by other users
+
+		@param graph_owner: Owner of graph
+		@param graph_id: ID of graph
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.submitted == 1).all()
+		db_session.close()
+		return submitted_layouts
+	except NoResultFound:
+		db_session.close()
+		return None
+
+
+def get_all_layouts_for_task_for_user(graph_owner, graph_id, layout_owner):
+	'''
+		Gets all layouts for a task that user has created.
+
+		@param graph_owner: Owner of graph
+		@param graph_id: Id of graph
+		@param layout_owner: Owner of layout
+	'''
+
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		my_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.owner_id == layout_owner).all()
+		db_session.close()
+		return my_layouts
+	except NoResultFound:
+		db_session.close()
+		return None
+
+def get_task(user_id, graph_id):
+	'''
+		Gets task of specific graph that user owns.
+		Only one graph may be a task at one time.
+
+		@param user_id: Owner of graph
+		@param graph_id: ID of graph
+	'''
+
+	db_session = data_connection.new_session()
+
+	# Get task that has graph_id and user_id if it exists
+	task = db_session.query(models.Task).filter(models.Task.user_id == user_id).filter(models.Task.graph_id == graph_id).first()
+	if task == None:
+		db_session.close()
+		return None
+	else:
+		db_session.close()
+		return task
+
+def create_new_task(user_id, graph_id, notes, description):
+	'''
+		Creates new task for the user.
+
+		@param user_id: Owner of graph
+		@param graph_id: Graph ID
+		@param notes: Notes attached to task
+		@param description: Description of task
+	'''
+
+	# Check to see if task for graph already exists
+	task = get_task(user_id, graph_id)
+
+	# If task exists, prompt user that only one task may be attached per graph
+	if task != None:
+		return "Task for : " + graph_id + " owned by: " + user_id + " already exists.  Please delete the previous task attached to this graph before creating a new task."
+	
+	if user_id == None or len(user_id) == 0:
+		return "Please enter valid user ID"
+
+	if graph_id == None or len(graph_id) == 0:
+		return "Please enter valid graph ID"
+
+	if notes == None or len(notes) == 0:
+		return "Please enter some notes"
+
+	if description == None or len(description) == 0:
+		return "Please enter a description of the task"
+
+	#create a new db session
+	db_session = data_connection.new_session()
+
+	# Add new task to database that expires in 3 days
+	new_task = models.Task(user_id = user_id, graph_id = graph_id, notes = notes, description = description, created = datetime.now(), expires = datetime.now() + timedelta(days=3))
+	db_session.add(new_task)
+	
+	db_session.commit()
+	db_session.close()
+
+	return None
 
 def add_user_to_password_reset(email, db_session=None):
 	'''
@@ -470,6 +665,69 @@ def get_default_layout_name(uid, gid):
 	else:
 		return None
 
+def set_task_layout_context(request, context, uid, gid):
+	layout_to_view = None
+
+	layout = request.GET.get('layout', '')
+
+	# if there is a layout specified in the request (query term), then render that layout
+	if len(layout) > 0:
+
+		if layout != 'default_breadthfirst' and layout != 'default_concentric' and layout != 'default_dagre' and layout != 'default_circle' and layout != 'default_cose' and layout != 'default_cola' and layout != 'default_arbor' and layout != 'default_springy':
+			
+			# Check to see if the user is logged in
+		    logged_in = None
+		    if 'uid' in context:
+		    	logged_in = context['uid']
+
+	    		# Based on the logged in user and the graph, check to see if 
+		    	# there exists a layout that matches the query term
+                task_layout = get_task_layout_for_graph(layout, gid, uid, logged_in)
+
+			    # If the layout either does not exist or the user is not allowed to see it, prompt them with an erro
+                if task_layout == None:
+			    	context['Error'] = "Layout: " + request.GET.get('layout') + " either does not exist or " + uid + " has not shared this layout yet.  Click <a href='" + URL_PATH + "graphs/" + uid + "/" + gid + "'>here</a> to view this graph without the specified layout."
+                else:
+					# Return layout JSON
+	                layout_to_view = json.dumps({"json": task_layout})
+
+	else:
+		# If there is no layout specified, simply return the default layout
+		# if it exists
+		layout_to_view = get_default_layout(uid, gid)
+		context['default_layout'] = get_default_layout_id(uid, gid)
+		context['layout_name'] = get_default_layout_name(uid, gid)
+
+	# Pass information to the template
+	context['default_layout_name'] = get_default_layout_name(uid, gid)
+	context['layout_to_view'] = layout_to_view
+	context['layout_urls'] = URL_PATH + "graphs/" + uid + "/" + gid + "?layout="
+
+	return context
+
+def get_task_layout_for_graph(layout_name, gid, uid, logged_in):
+	'''
+		Gets task layout for graph.
+
+		@param layout_name: Name of layout
+		@param gid: ID Of graph
+		@param uid: Owner of graph
+		@param logged_in: Logged in user
+	'''
+
+	# Get Database connection
+	db_session = data_connection.new_session()
+
+	# Get layout for graph if it exists
+	task_layout = db_session.query(models.TaskLayout).filter(models.TaskLayout.layout_name == layout_name).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.user_id == uid).first()
+	
+	if task_layout != None:
+		# See if logged in user can view the layout
+		if task_layout.submitted == 1 or task_layout.owner_id == logged_in:
+			return cytoscapePresetLayout(json.loads(task_layout.json))
+
+	return None
+
 def set_layout_context(request, context, uid, gid):
 	'''
 		Sets the entire context of a graph to be viewed.  This is needed for sending information to the front-end
@@ -529,14 +787,6 @@ def set_layout_context(request, context, uid, gid):
 	# Pass information to the template
 	context['layout_to_view'] = layout_to_view
 	context['layout_urls'] = URL_PATH + "graphs/" + uid + "/" + gid + "?layout="
-
-	search_type = None
-
-	# Get the search term to highlight once we load the layout for the graph
-	if 'partial_search' in request.GET:
-	    search_type = 'partial_search'
-	elif 'full_search' in request.GET:
-	    search_type = 'full_search'
 
     # If user is logged in, display my layouts and shared layouts
 	if 'uid' in context:

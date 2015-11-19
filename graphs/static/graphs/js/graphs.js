@@ -71,6 +71,74 @@ $(document).ready(function() {
   });
 
   /**
+  * When the user wants to end the current task.
+  */
+  $(".end_task").click(function (e) {
+    var graph_id = $(this).attr('id');
+    var user_id = $(this).val();
+
+    $("#deleteTaskModal").modal('toggle');
+
+    //User confirms they want to end the task
+    $("#end_task").on('click', function(e) {
+      $.post("/end_task_through_ui/", {
+      "graph_id": graph_id,
+      "user_id": user_id
+      }, function(data) {
+
+            if (data.Error) {
+              return alert(data.Error);
+            }
+            window.location.reload();
+      });
+    });
+  });
+
+  /**
+  * TEMPORARY: REMOVE AFTER MORE WORK HAS BEEN DONE.
+  * Launches a new task on clicked graph.
+  * Automatically populates notes etc. for now.
+  */
+  $(".launch_task").click(function(e) {
+    var graph_id = $(this).attr('id');
+    var user_id = $(this).val();
+
+    $("#task_owner").val(user_id);
+    $("#graph_name").val(graph_id);
+
+    $("#taskModal").modal('toggle');
+
+    $("#task_add").on('click', function(e) {
+
+        var description = $("#task_description").val();
+        var note = $("#task_note").val();
+
+        if (description.length == 0) {
+          $("#problem").text("Please enter a description for the task!");
+          return;
+        }
+
+        if (note.length == 0) {
+          $("#problem").text("Please enter some notes for the task!");
+          return;
+        }
+
+        //Upload new task
+        $.post('/upload_new_task_through_ui/', {
+            'user_id': user_id,
+            'graph_id': graph_id,
+            'notes': note,
+            'description': description
+          }, function(data) {
+            if (data.Error) {
+              return alert(data.Error);
+            }
+            window.location.reload();
+          });
+    });
+  });
+
+  /**
    * Appends appropriate terms to the url depending on what is being searched for
    * For example, it appends ?queryTerm if there are no query terms, or it appends &queryTerm=
    * to the end of the current url if a queryterm already exists.
