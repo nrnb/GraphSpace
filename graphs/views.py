@@ -204,6 +204,29 @@ def view_task(request, uid, gid):
 
     return render(request, "graphs/view_task_graph.html", context)
 
+def submitTaskLayout(request):
+    '''
+        Submits layout for task.
+    '''
+    if request.POST:
+
+        layout_name = request.POST["layout_name"]
+        layout_owner = request.POST["layout_owner"]
+        user_id = request.POST["user_id"]
+        graph_id = request.POST["graph_id"]
+        logged_in = request.POST["logged_in"]
+
+        print layout_name, layout_owner
+
+        if layout_name != None and layout_owner != None:
+            error = db.toggle_submit_layout(user_id, graph_id, layout_owner, layout_name, logged_in)
+            if error == None:
+                return HttpResponse(json.dumps(db.sendMessage(200, "Task Submitted!")), content_type="application/json")
+            else:
+                return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+    else:
+        return HttpResponse(json.dumps(db.throwError(400, "This route only accepts POST requests")), content_type="application/json");
+
 def my_tasks(request):
     '''
         View to show all tasks user owns.
@@ -280,11 +303,11 @@ def save_task_layout_through_ui(request):
 
         user_id = request.POST['user_id']
         graph_id = request.POST['graph_id']
-        logged_in = uid
+        layout_owner = request.POST['layout_owner']
         layout_name = request.POST['layout_name']
         layout = request.POST['layout']
 
-        error = save_task_layout(user_id, graph_id, logged_in, layout_name, layout)
+        error = save_task_layout(user_id, graph_id, layout_owner, layout_name, layout)
 
         if error == None:
             return HttpResponse(json.dumps(db.sendMessage(201, "Layout saved for this task!")), content_type="application/json")
@@ -523,11 +546,10 @@ def save_layout(request, uid, gid):
         :param HTTP POST Request
 
     '''
-    
     if gid[len(gid) - 1] == '/':
         gid = gid[:len(gid) - 1]
 
-    result = db.save_layout(request.POST['layout_id'], request.POST['layout_name'], uid, gid, request.POST['loggedIn'], request.POST['points'], request.POST['public'], request.POST['unlisted'])
+    result = db.save_layout(gid, uid, request.POST['layout_name'], request.POST['loggedIn'], request.POST['points'], request.POST['public'], request.POST['unlisted'])
     if result == None:
         return HttpResponse(json.dumps(db.sendMessage(200, "Layout saved!")), content_type="application/json")
     
@@ -1151,8 +1173,11 @@ def changeLayoutName(request):
         new_layout_name = request.POST['new_layout_name']
         loggedIn = request.POST['loggedIn']
 
-        db.changeLayoutName(uid, gid, old_layout_name, new_layout_name, loggedIn)
-        return HttpResponse(json.dumps({"StatusCode": 200, "Message": "Layout name changed!", "url": URL_PATH + 'graphs/' + uid + '/' + gid + '/?layout=' + new_layout_name}), content_type="application/json")
+        error = db.changeLayoutName(uid, gid, old_layout_name, new_layout_name, loggedIn)
+        if error == None:
+            return HttpResponse(json.dumps({"StatusCode": 200, "Message": "Layout name changed!", "url": URL_PATH + 'graphs/' + uid + '/' + gid + '/?layout=' + new_layout_name + "&layout_owner=" + loggedIn}), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json")
 
 def deleteLayout(request):
     '''
@@ -1168,13 +1193,10 @@ def deleteLayout(request):
         uid = request.POST['owner']
         gid = request.POST['gid']
 
-        if gid[len(gid) - 1] == "/":
-            gid = gid[:len(gid) - 1]
-
         layoutToDelete = request.POST['layout']
-        loggedIn = request.POST['user_id']
+        layout_owner = request.POST['layout_owner']
 
-        result = db.deleteLayout(uid, gid, layoutToDelete, loggedIn)
+        result = db.deleteLayout(uid, gid, layoutToDelete, layout_owner)
 
         if result == None:
             return HttpResponse(json.dumps({"StatusCode": 200, "Message": "Layout deleted!", "url": URL_PATH + 'graphs/' + uid + '/' + gid}), content_type="application/json")
@@ -1426,18 +1448,18 @@ def shareLayoutWithGroups(request):
         :return TBD
     '''
     if request.method == 'POST':
-        owner = request.POST['owner']
+        layout_owner = request.POST['loggedIn']
         gid = request.POST['gid']
         uid = request.POST['uid']
         layoutId = request.POST['layoutId']
 
-        if len(db.get_all_groups_for_this_graph(owner, gid)) == 0:
+        if len(db.get_all_groups_for_this_graph(uid, gid)) == 0:
             return HttpResponse(json.dumps(db.throwError(400, "No groups to share with.  Either share this graph with a group first or make this graph public!")), content_type="application/json")
         else:
-            if db.is_public_graph(owner, gid):
-                db.makeLayoutPublic(owner, gid, layoutId)
+            if db.is_public_graph(uid, gid):
+                db.makeLayoutPublic(uid, gid, layoutId, layout_owner)
             else:
-                db.share_layout_with_all_groups_of_user(owner, gid, layoutId)
+                db.share_layout_with_all_groups_of_user(uid, gid, layoutId, layout_owner)
  
             return HttpResponse(json.dumps(db.sendMessage(200, "Okay")), content_type="application/json")
 

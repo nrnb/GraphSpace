@@ -95,7 +95,7 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in submitted_layouts %}
-                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}">{{o.layout_name}} by: {{o.owner_id}}</a>
+                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}</a>
                                     {% endfor %}
                                 </ul>  
                             </div>
@@ -103,11 +103,11 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in my_layouts %}
-                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}">{{o.layout_name}}<br><br>
-                                        <button class="btn btn-default layout_links submit" id="{{url}}" rel="tooltip" data-toggle="tooltip" title="Submit Layout For Review" value="{{o}}" style="float: left;">
+                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}<br><br>
+                                        <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Submit Layout For Review" value="{{o.layout_name}}" style="float: left;">
                                           <span class="glyphicon glyphicon-ok"></span>
                                         </button>
-                                        <button class="btn btn-default layout_links submit" id="{{url}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o}}" style="float: left;">
+                                        <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o.layout_name}}" style="float: left;">
                                           <span class="glyphicon glyphicon-remove"></span>
                                         </button>
                                         <div style="clear: both;"></div>

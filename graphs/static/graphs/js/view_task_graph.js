@@ -5,7 +5,7 @@ $(document).ready(function() {
     window.cy = cytoscape({
       container: $('#csjs')[0],
 
-      // ** NOTE: REPLACE - WITH _ SO CYTOSCAPEJS WILL RENDER PROPERTIES
+// ** NOTE: REPLACE - WITH _ SO CYTOSCAPEJS WILL RENDER PROPERTIES
 
       //Style properties of NODE body
       style: cytoscape.stylesheet()
@@ -47,6 +47,12 @@ $(document).ready(function() {
       .selector('node[background_image_opacity]').css({
         'background-image-opacity': 'data(background_image_opacity)'
       })
+      .selector('node[background_width]').css({
+        'background-width': 'data(background_width)'
+      })
+      .selector('node[background_height]').css({
+        'background-height': 'data(background_height)'
+      })
       .selector('node[background_fit]').css({
         'background-fit': 'data(background_fit)'
       })
@@ -62,8 +68,6 @@ $(document).ready(function() {
       .selector('node[background_clip]').css({
         'background-clip': 'data(background_clip)'
       })
-
-      //HAVE NOT DONE PIE CHART BACKGROUND
 
       //LABEL PROPERTIES
       .selector('node[color]').css({
@@ -81,10 +85,10 @@ $(document).ready(function() {
       .selector('node[font_style]').css({
         'font-style': 'data(font_style)'
       })
-      .selector('node[font-weight]').css({
+      .selector('node[font_weight]').css({
         'font-weight': 'data(font_weight)'
       })
-      .selector('node[text-transform]').css({
+      .selector('node[text_transform]').css({
         'text-transform': 'data(text_transform)'
       })
       .selector('node[text_wrap]').css({
@@ -96,7 +100,7 @@ $(document).ready(function() {
       .selector('node[edge_text_rotation]').css({
         'edge-text-rotation': 'data(edge_text_rotation)'
       })
-      .selector('node[text-opacity]').css({
+      .selector('node[text_opacity]').css({
         'text-opacity': 'data(text_opacity)'
       })
       .selector('node[text_outline_color]').css({
@@ -152,8 +156,8 @@ $(document).ready(function() {
       .selector('edge[curve_style]').css({
         'curve-style': 'data(curve_style)'
       })
-      .selector('edge[haystack-radius]').css({
-        'haystack-radius': 'data(haystack-radius)'
+      .selector('edge[haystack_radius]').css({
+        'haystack-radius': 'data(haystack_radius)'
       })
       .selector('edge[control_point_step_size]').css({
         'control-point-step-size': 'data(control_point_step_size)'
@@ -415,9 +419,9 @@ $(document).ready(function() {
           "user_id": userId,
           "graph_id": graphId,
           "layout_name": layoutName,
+          "layout_owner": loggedIn,
           "layout": layout
         }, function( data ) {
-          console.log(data.StatusCode == 201);
           if (data.StatusCode == 201) {
             location.reload();
           } else {
@@ -546,10 +550,35 @@ $(document).ready(function() {
           window.location.href = baseLoc;
       }
     }
-
-    console.log(graph_layout);
     return graph_layout;
 }
+
+/** 
+ * When user submits a layout for review.
+ */
+ $(".submit").click(function(e) {
+    e.preventDefault();
+
+    var layout_name = $(this).val();
+    var layout_owner = $(this).attr("id");
+    var userId = $("#userId").text();
+    var graphId = $("#graphId").text();
+    var loggedIn = $("#loggedIn").text();
+
+    $.post("../../submitTaskLayout/", {
+      "layout_owner": layout_owner,
+      "layout_name": layout_name,
+      "user_id": userId,
+      "graph_id": graphId, 
+      "logged_in": loggedIn 
+    }, function(data) {
+      if (data.Error) {
+        return alert(data.Error);
+      } else {
+        window.location.reload();
+      }
+    });
+ });
 
 //Gets query variables from the url
 function getQueryVariable(variable)
