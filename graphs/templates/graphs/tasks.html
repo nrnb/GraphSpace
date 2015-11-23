@@ -69,8 +69,8 @@
 		                     		<th>Graph ID</th>
 		                    		<th>Graph Owner</th>
 		                    		<th>Description</th>
-		                    		<!-- <th>Created</th> -->
 		                    		<th>Expires</th>
+		                    		<th>Number of Submissions</th>
 		                    		<th></th>
 		                		</tr>
 		          				{% for task in current_page %}
@@ -83,8 +83,9 @@
 		          						{% if uid == task.user_id %}
 		          							<td><button class="btn btn-default end_task" data-toggle="modal" data-target="#deleteModal" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
 		          						{% else %}
-		          							<td></td>
+		          							<td>{{task.submitted_layouts_count}}</td>
 		          						{% endif %}
+		          						<td></td>
 	          						</tr>
 		          				{% endfor %}
 							</table>

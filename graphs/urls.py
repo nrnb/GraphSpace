@@ -19,6 +19,7 @@ urlpatterns = patterns('',
         url(r'^save_task_layout_through_ui/$', views.save_task_layout_through_ui, name='save_task_layout_through_ui'),
         
         url(r'^submitTaskLayout/$', views.submitTaskLayout, name='submitTaskLayout'),
+        url(r'^deleteTaskLayout/$', views.deleteTaskLayout, name='deleteTaskLayout'),
         
         # delete task
         url(r'^end_task_through_ui/$', views.end_task_through_ui, name='end_task_through_ui'),

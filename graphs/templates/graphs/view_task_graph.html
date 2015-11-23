@@ -12,6 +12,7 @@
 <p id="loggedIn" style="display:none;">{{logged_in}}</p>
 <p id="graphId" style="display:none;">{{graph_id}}</p>
 <p id="userId" style="display:none;">{{user_id}}</p>
+<p id="taskURL" style="display:none;">{{task_url}}</p>
 
 <!-- Save Modal -->
         <div class="modal fade" id="layout_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -95,7 +96,15 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in submitted_layouts %}
-                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}</a>
+                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}
+                                        {% if o.owner_id == logged_in %}
+                                            <br><br>
+                                            <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Unsubmit Layout" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon glyphicon-minus-sign"></span>
+                                            </button>
+                                        {% endif %}
+                                        <div style="clear: both;"></div>
+                                        </a>
                                     {% endfor %}
                                 </ul>  
                             </div>
@@ -103,11 +112,23 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in my_layouts %}
-                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}<br><br>
-                                        <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Submit Layout For Review" value="{{o.layout_name}}" style="float: left;">
-                                          <span class="glyphicon glyphicon-ok"></span>
-                                        </button>
-                                        <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o.layout_name}}" style="float: left;">
+                                        {% if o.submitted == 1 %}
+                                            <a class="list-group-item layout_buttons" style="background-color: grey; color: white;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                        {% else %}
+                                            <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                        {% endif %}
+                                        <br><br>
+
+                                        {% if o.submitted == 1 %}
+                                            <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Unsubmit Layout" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon glyphicon-minus-sign"></span>
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Submit Layout For Review" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon glyphicon-plus-sign"></span>
+                                            </button>
+                                        {% endif %}
+                                        <button class="btn btn-default layout_links delete" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o.layout_name}}" style="float: left;">
                                           <span class="glyphicon glyphicon-remove"></span>
                                         </button>
                                         <div style="clear: both;"></div>

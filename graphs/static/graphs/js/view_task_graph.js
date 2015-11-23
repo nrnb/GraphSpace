@@ -423,7 +423,7 @@ $(document).ready(function() {
           "layout": layout
         }, function( data ) {
           if (data.StatusCode == 201) {
-            location.reload();
+            window.location.href = $("#taskURL").text() + "?layout=" + layoutName + "&layout_owner=" + loggedIn
           } else {
             alert(data.Error);
           }
@@ -579,6 +579,31 @@ $(document).ready(function() {
       }
     });
  });
+
+/**
+ * When a user wants to delete a layout.
+ */
+$(".delete").click(function(e) {
+  e.preventDefault();
+
+  var layout_name = $(this).val();
+  var layout_owner = $(this).attr("id");
+  var userId = $("#userId").text();
+  var graphId = $("#graphId").text();
+
+  $.post("../../deleteTaskLayout/", {
+    "layout_owner": layout_owner,
+    "layout_name": layout_name,
+    "user_id": userId,
+    "graph_id": graphId
+  }, function(data) {
+    if (data.Error) {
+      return alert(data.Error);
+    } else {
+      window.location.href = $("#taskURL").text();
+    }
+  });
+});
 
 //Gets query variables from the url
 function getQueryVariable(variable)

@@ -216,10 +216,28 @@ def submitTaskLayout(request):
         graph_id = request.POST["graph_id"]
         logged_in = request.POST["logged_in"]
 
-        print layout_name, layout_owner
-
         if layout_name != None and layout_owner != None:
             error = db.toggle_submit_layout(user_id, graph_id, layout_owner, layout_name, logged_in)
+            if error == None:
+                return HttpResponse(json.dumps(db.sendMessage(200, "Task Submitted!")), content_type="application/json")
+            else:
+                return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+    else:
+        return HttpResponse(json.dumps(db.throwError(400, "This route only accepts POST requests")), content_type="application/json");
+
+def deleteTaskLayout(request):
+    '''
+        Submits layout for task.
+    '''
+    if request.POST:
+
+        layout_name = request.POST["layout_name"]
+        layout_owner = request.POST["layout_owner"]
+        user_id = request.POST["user_id"]
+        graph_id = request.POST["graph_id"]
+
+        if layout_name != None and layout_owner != None:
+            error = db.delete_task_layout(user_id, graph_id, layout_owner, layout_name)
             if error == None:
                 return HttpResponse(json.dumps(db.sendMessage(200, "Task Submitted!")), content_type="application/json")
             else:

@@ -129,11 +129,41 @@ def get_all_tasks_for_user(user_id):
 	try:
 		# Get all user owned tasks
 		tasks = db_session.query(models.Task).filter(models.Task.user_id == user_id).all()
+
+		for task in tasks:
+			setattr(task, "submitted_layouts_count", get_all_submitted_layouts_for_task(user_id, task.graph_id))
+
 		db_session.close()
 		return tasks
 	except NoResultFound:
 		db_session.close()
 		return None
+
+def get_all_submitted_layouts_for_task(user_id, graph_id):
+	'''
+		Gets number of submitted layouts for a graph.
+
+		@param user_id: Owner of graph
+		@param graph_id: ID of graph
+	'''
+
+	# Check to see if task exists
+	task = get_task(user_id, graph_id)
+
+	if task == None:
+		return None
+
+	# Get number of submitted layouts for this task
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == user_id).filter(models.TaskLayout.submitted == 1).all()
+		return len(submitted_layouts)
+
+	except NoResultFound:
+		db_session.close()
+		return 0
 
 def get_available_tasks():
 	'''
@@ -146,6 +176,10 @@ def get_available_tasks():
 	try:
 		# Get all user owned tasks
 		tasks = db_session.query(models.Task).all()
+
+		for task in tasks:
+			setattr(task, "submitted_layouts_count", get_all_submitted_layouts_for_task(task.user_id, task.graph_id))
+
 		db_session.close()
 		return tasks
 	except NoResultFound:
@@ -665,6 +699,21 @@ def get_default_layout_name(uid, gid):
 	else:
 		return None
 
+def delete_task_layout(uid, gid, layout_owner, layout_name):
+
+	db_session = data_connection.new_session()
+	
+	task_layout = db_session.query(models.TaskLayout).filter(models.TaskLayout.layout_name == layout_name).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.owner_id == layout_owner).first()
+	
+	if task_layout == None:
+		return "Task does not exist!"
+
+	db_session.delete(task_layout)
+	db_session.commit()
+	db_session.close()
+
+	return None
+
 def toggle_submit_layout(uid, gid, layout_owner, layout_name, logged_in):
 
 	db_session = data_connection.new_session()
@@ -721,7 +770,7 @@ def set_task_layout_context(request, context, uid, gid):
 	# Pass information to the template
 	context['default_layout_name'] = get_default_layout_name(uid, gid)
 	context['layout_to_view'] = layout_to_view
-	context['layout_urls'] = URL_PATH + "graphs/" + uid + "/" + gid + "?layout="
+	context['task_url'] = URL_PATH + "tasks/" + uid + "/" + gid
 
 	return context
 
