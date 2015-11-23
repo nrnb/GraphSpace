@@ -225,6 +225,42 @@ def submitTaskLayout(request):
     else:
         return HttpResponse(json.dumps(db.throwError(400, "This route only accepts POST requests")), content_type="application/json");
 
+def toggleAcceptTaskLayout(request):
+    '''
+        Accepts a given layout for a graph.
+    '''
+    if request.POST:
+        layout_name = request.POST["layout_name"]
+        layout_owner = request.POST["layout_owner"]
+        uid = request.POST["uid"]
+        gid = request.POST["gid"]
+
+        error = db.toggle_accept_task_layout(uid, gid, layout_owner, layout_name)
+        if error != None:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+        else:
+            return HttpResponse(json.dumps(db.sendMessage(200, "Layout Accepted!")), content_type="application/json")
+    else:
+        return HttpResponse(json.dumps(db.throwError(400, "This route only accepts POST requests")), content_type="application/json");
+
+def rejectTaskLayout(request):
+    '''
+        Rejects a given layout for a graph.
+    '''
+    if request.POST:
+        layout_name = request.POST["layout_name"]
+        layout_owner = request.POST["layout_owner"]
+        uid = request.POST["uid"]
+        gid = request.POST["gid"]
+
+        error = db.reject_task_layout(uid, gid, layout_owner, layout_name)
+        if error != None:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+        else:
+            return HttpResponse(json.dumps(db.sendMessage(200, "Layout Accepted!")), content_type="application/json")
+    else:
+        return HttpResponse(json.dumps(db.throwError(400, "This route only accepts POST requests")), content_type="application/json");
+
 def deleteTaskLayout(request):
     '''
         Submits layout for task.

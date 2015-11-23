@@ -186,6 +186,9 @@ class TaskLayout(Base):
     # Is this layout submitted for review by the designer?
     submitted = Column(Integer, nullable = True)
 
+    # Has layout been accepted by researcher?
+    accepted = Column(Integer, nullable = True)
+
     # SQLAlchemy's way of creating a multi-column foreign key constraint.
     __table_args__ = (ForeignKeyConstraint([graph_id, user_id], [Graph.graph_id, Graph.user_id], ondelete="CASCADE", onupdate="CASCADE"), {})
 

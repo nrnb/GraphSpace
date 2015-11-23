@@ -78,14 +78,13 @@
 		          						<td><a href="{{url}}tasks/{{task.user_id}}/{{task.graph_id}}">{{task.graph_id}}</a></td>
 		          						<td>{{task.user_id}}</td>
 		          						<td>{{task.description}}</td>
-		          						<!-- <td>{{task.created}}</td> -->
 		          						<td>{{task.expires}}</td>
+		          						<td>{{task.submitted_layouts_count}}</td>
 		          						{% if uid == task.user_id %}
 		          							<td><button class="btn btn-default end_task" data-toggle="modal" data-target="#deleteModal" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
 		          						{% else %}
-		          							<td>{{task.submitted_layouts_count}}</td>
+		          							<td></td>
 		          						{% endif %}
-		          						<td></td>
 	          						</tr>
 		          				{% endfor %}
 							</table>
@@ -119,14 +118,15 @@
 	                            <button class="btn btn-info" id="search_button" type="submit">Search</button>
 	                        </span>
 	                    </div>
-	                    <!-- <div class="input-group" id="search_radios">
+	                    <br>
+	                    <div class="input-group" id="search_radios">
 	                    <label>
 	                        <input type="radio" class="search_type" id="partial_search" name="match" value="partial_search" rel="tooltip" data-toggle="tooltip" title="Return all graphs that partially match the search term(s)"> Similar
 	                    </label>
 	                    <label>
 	                        <input type="radio" id="full_search" class="search_type" name="match" value="full_search" rel="tooltip" data-toggle="tooltip" title="Return all graphs that fully match the search term(s)"> Exact
 	                    </label>
-	                    </div> -->
+	                    </div>
 	                  </form>
 	                  <br>
 	                  <div style="text-align: center;">
@@ -148,22 +148,17 @@
 
 <script type="text/javascript" src="{% static 'graphs/js/task.js' %}"></script>
 
-{% endblock %}
-
-{% block css-js-footer %}
-
 <!-- load stylesheets -->
 <!-- jQuery UI style sheet -->
-<link rel="stylesheet" href="{% static 'graphs/css/jquery-ui.min.css' %}">
-
+<!-- <link rel="stylesheet" href="{% static 'graphs/css/jquery-ui.min.css' %}"> -->
 
 <!-- stylesheet for pager -->
-<link href="{% static 'graphs/css/pager.css' %}" rel="stylesheet">
+<!-- <link href="{% static 'graphs/css/pager.css' %}" rel="stylesheet"> -->
 
 <!-- stylesheet for elements specified in this html(graphs.html) -->
-<link rel="stylesheet" type="text/css" href="{% static 'graphs/css/graphs.css' %}">
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'graphs/css/graphs.css' %}"> -->
 
 <!-- stylesheet for side menues -->
-<link rel="stylesheet" type="text/css" href="{% static 'graphs/css/side_menu.css' %}">
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'graphs/css/side_menu.css' %}"> -->
 
 {% endblock %}

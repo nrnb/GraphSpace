@@ -131,13 +131,39 @@ def get_all_tasks_for_user(user_id):
 		tasks = db_session.query(models.Task).filter(models.Task.user_id == user_id).all()
 
 		for task in tasks:
-			setattr(task, "submitted_layouts_count", get_all_submitted_layouts_for_task(user_id, task.graph_id))
+			setattr(task, "submitted_layouts_count", len(get_all_submitted_layouts_for_task(user_id, task.graph_id)))
 
 		db_session.close()
 		return tasks
 	except NoResultFound:
 		db_session.close()
 		return None
+
+def get_all_accepted_layouts_for_task(user_id, graph_id):
+	'''
+		Gets number of submitted layouts for a graph.
+
+		@param user_id: Owner of graph
+		@param graph_id: ID of graph
+	'''
+
+	# Check to see if task exists
+	task = get_task(user_id, graph_id)
+
+	if task == None:
+		return []
+
+	# Get number of submitted layouts for this task
+	# Get connection to database
+	db_session = data_connection.new_session()
+
+	try:
+		accepted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == user_id).filter(models.TaskLayout.accepted == 1).all()
+		return accepted_layouts
+
+	except NoResultFound:
+		db_session.close()
+		return []
 
 def get_all_submitted_layouts_for_task(user_id, graph_id):
 	'''
@@ -151,19 +177,19 @@ def get_all_submitted_layouts_for_task(user_id, graph_id):
 	task = get_task(user_id, graph_id)
 
 	if task == None:
-		return None
+		return []
 
 	# Get number of submitted layouts for this task
 	# Get connection to database
 	db_session = data_connection.new_session()
 
 	try:
-		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == user_id).filter(models.TaskLayout.submitted == 1).all()
-		return len(submitted_layouts)
+		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == user_id).filter(models.TaskLayout.submitted == 1).filter(models.TaskLayout.accepted == None).all()
+		return submitted_layouts
 
 	except NoResultFound:
 		db_session.close()
-		return 0
+		return []
 
 def get_available_tasks():
 	'''
@@ -178,7 +204,7 @@ def get_available_tasks():
 		tasks = db_session.query(models.Task).all()
 
 		for task in tasks:
-			setattr(task, "submitted_layouts_count", get_all_submitted_layouts_for_task(task.user_id, task.graph_id))
+			setattr(task, "submitted_layouts_count", len(get_all_submitted_layouts_for_task(task.user_id, task.graph_id)))
 
 		db_session.close()
 		return tasks
@@ -714,6 +740,41 @@ def delete_task_layout(uid, gid, layout_owner, layout_name):
 
 	return None
 
+def toggle_accept_task_layout(uid, gid, layout_owner, layout_name):
+	
+	db_session = data_connection.new_session()
+	
+	task_layout = db_session.query(models.TaskLayout).filter(models.TaskLayout.layout_name == layout_name).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.owner_id == layout_owner).first()
+	
+	if task_layout == None:
+		return "Layout does not exist!"
+
+	if task_layout.accepted == None or task_layout.accepted == 0:
+		task_layout.accepted = 1
+	else:
+		task_layout.accepted = None
+
+	db_session.commit()
+	db_session.close()
+
+	return None
+
+def reject_task_layout(uid, gid, layout_owner, layout_name):
+	
+	db_session = data_connection.new_session()
+	
+	task_layout = db_session.query(models.TaskLayout).filter(models.TaskLayout.layout_name == layout_name).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.user_id == uid).filter(models.TaskLayout.owner_id == layout_owner).first()
+	
+	if task_layout == None:
+		return "Layout does not exist!"
+
+	task_layout.accepted = 0
+	db_session.commit()
+	db_session.close()
+
+	return None
+
+
 def toggle_submit_layout(uid, gid, layout_owner, layout_name, logged_in):
 
 	db_session = data_connection.new_session()
@@ -742,7 +803,7 @@ def set_task_layout_context(request, context, uid, gid):
 	# if there is a layout specified in the request (query term), then render that layout
 	if len(layout) > 0:
 
-		if layout != 'default_breadthfirst' and layout != 'default_concentric' and layout != 'default_dagre' and layout != 'default_circle' and layout != 'default_cose' and layout != 'default_cola' and layout != 'default_arbor' and layout != 'default_springy':
+		if layout != 'default_breadthfirst' and layout != 'default_concentric' and layout != 'default_circle' and layout != 'default_grid' and layout != 'default_cose':
 			
 			# Check to see if the user is logged in
 		    logged_in = None
@@ -814,7 +875,7 @@ def set_layout_context(request, context, uid, gid):
 	if len(request.GET.get('layout', '')) > 0:
 
 		# If the layout is not one of the automatic layout algorithms
-		if request.GET.get('layout') != 'default_breadthfirst' and request.GET.get('layout') != 'default_concentric' and request.GET.get('layout') != 'default_dagre' and request.GET.get('layout') != 'default_circle' and request.GET.get('layout') != 'default_cose' and request.GET.get('layout') != 'default_cola' and request.GET.get('layout') != 'default_arbor' and request.GET.get('layout') != 'default_springy':
+		if request.GET.get('layout') != 'default_breadthfirst' and request.GET.get('layout') != 'default_concentric' and request.GET.get('layout') != 'default_circle' and request.GET.get('layout') != 'default_cose' and request.GET.get('layout') != 'default_grid':
 		    
 		    # Check to see if the user is logged in
 		    loggedIn = None
@@ -881,6 +942,14 @@ def set_layout_context(request, context, uid, gid):
 				my_shared_layout_names.append(layout.layout_name)
 
 		context['my_shared_layouts'] = my_shared_layout_names
+
+		# Get all submitted layouts
+		submitted_layouts = get_all_submitted_layouts_for_task(uid, gid)
+		accepted_layouts = get_all_accepted_layouts_for_task(uid, gid)
+
+		context["submitted_layouts"] = submitted_layouts
+		context["accepted_layouts"] = accepted_layouts
+
 	else:
 		# Otherwise only display public layouts
 		context['my_layouts'] = []
@@ -3925,6 +3994,7 @@ def get_shared_layouts_for_graph(uid, gid, loggedIn):
 	db_session = data_connection.new_session()
 
 	try:
+		layout_names = []
 		# Get all groups this graph is shared with
 		all_groups_for_graph = get_all_groups_for_this_graph(uid, gid)
 
@@ -3951,7 +4021,6 @@ def get_shared_layouts_for_graph(uid, gid, loggedIn):
 				layout_names = db_session.query(models.Layout).filter(models.Layout.user_id == uid).filter(models.Layout.graph_id == gid).filter(models.Layout.shared_with_groups == 1).all()
 
 		db_session.close()
-		print "Layout names", layout_names
 		return layout_names
 	except NoResultFound:
 		db_session.close()
