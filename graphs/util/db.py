@@ -3855,13 +3855,15 @@ def get_layout_for_graph(layout_name, layout_owner, graph_id, graph_owner, logge
 	layout = db_session.query(models.Layout).filter(models.Layout.layout_name == layout_name).filter(models.Layout.graph_id == graph_id).filter(models.Layout.user_id == graph_owner).filter(models.Layout.owner_id == layout_owner).first()
 
 	if layout == None:
+		# Check crowdsourced layouts
+		layout = db_session.query(models.TaskLayout).filter(models.TaskLayout.layout_name == layout_name).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.owner_id == layout_owner).first()
+
+	if layout == None:
 		db_session.close()
 		return None
 	else:
 		db_session.close()
 		return cytoscapePresetLayout(json.loads(layout.json))
-
-	
 
 def cytoscapePresetLayout(csWebJson):
 	'''

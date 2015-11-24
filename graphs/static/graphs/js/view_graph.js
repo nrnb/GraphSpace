@@ -1246,10 +1246,10 @@ function getLayoutFromQuery() {
     } else {
 
       $("#auto").removeClass('active');
-      $("#manual").addClass('active');
+      // $("#manual").addClass('active');
 
       $('#builtin').removeClass('active');
-      $('#custom').addClass('active');
+      // $('#custom').addClass('active');
 
        if (layout && layout.json != null) {
         graph_layout = {
