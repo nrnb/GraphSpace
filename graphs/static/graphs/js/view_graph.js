@@ -947,7 +947,6 @@ function searchValues(search_type, labels) {
     var k_problems = [];
     for (var i = 0; i < labels.length; i++) {
       if (data[labels[i]].length == 0) {
-        console.log("HERE");
         if (labels[i].trim().length == 0) {
           $("#search_error_text").append("Please enter node or edge name!<br>");
         } else {
@@ -1234,10 +1233,6 @@ function getLayoutFromQuery() {
     } else if (query == 'default_cose') {
       graph_layout = {
         name: "cose"
-        // padding: 10,
-        // fit: true,
-        // animate: true,
-        // nodeOverlap: 30
       }
     } else if (query == "default_grid") {
       graph_layout = {
@@ -1515,4 +1510,3 @@ function setBarToValue(inputId, barId) {
   }
   showOnlyK();
 }
-

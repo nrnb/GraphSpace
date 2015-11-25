@@ -60,7 +60,7 @@
 
 		<!-- Table of My Tasks -->
 		<div class="row">
-		    <div class="col-sm-9">
+		    <div class="col-sm-12">
 		    	{% if tasks_list != None and tasks_list|length > 0 %}
 		    		{% if current_page != None %}
 				        <div class="results_table">
@@ -99,7 +99,7 @@
 				{% endif %}
 			</div>
 
-			<div class="col-sm-3 side">
+		<!-- 	<div class="col-sm-3 side">
 				{% if page_numbers|length > 1 %}
 			        <div id="search_box_panel_accordion" class="panel-group" style="margin-top: -161px;">
 			    {% else %}
@@ -138,9 +138,8 @@
 	            </div>
 	            <br> <br>
 			   
-			</div>
+			</div> -->
 		</div>
-
 	<footer class="footer">
 		<br>Powered by <a href="https://www.djangoproject.com/">Django 1.7.6</a>
 		<br><a href = "http://js.cytoscape.org/">CytoscapeJS 2.4.0</a>

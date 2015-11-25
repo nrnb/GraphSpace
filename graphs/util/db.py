@@ -131,7 +131,7 @@ def get_all_tasks_for_user(user_id):
 		tasks = db_session.query(models.Task).filter(models.Task.user_id == user_id).all()
 
 		for task in tasks:
-			setattr(task, "submitted_layouts_count", len(get_all_submitted_layouts_for_task(user_id, task.graph_id)))
+			setattr(task, "submitted_layouts_count", len(get_all_submitted_layouts_for_task(task.user_id, task.graph_id)))
 
 		db_session.close()
 		return tasks
@@ -184,7 +184,7 @@ def get_all_submitted_layouts_for_task(user_id, graph_id):
 	db_session = data_connection.new_session()
 
 	try:
-		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == user_id).filter(models.TaskLayout.submitted == 1).filter(models.TaskLayout.accepted == None).all()
+		submitted_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == user_id).filter(models.TaskLayout.submitted == 1).all()
 		return submitted_layouts
 
 	except NoResultFound:
@@ -862,7 +862,6 @@ def get_task_layout_for_graph(layout_name, gid, uid, layout_owner, loggedIn):
 def set_layout_context(request, context, uid, gid):
 	'''
 		Sets the entire context of a graph to be viewed.  This is needed for sending information to the front-end
-
 		:param request: HTTP Request of graph to view
 		:param context: Dictionary containing all the variables to send to the front-end
 		:param uid: The owner of the graph
@@ -2091,14 +2090,12 @@ def find_edge(uid, gid, edge_to_find, search_type):
 						matching_edges = db_session.query(models.Edge).filter(models.Edge.head_node_id == head_nodes[j]).filter(models.Edge.tail_node_id == tail_nodes[i]).filter(models.Edge.user_id == uid).filter(models.Edge.graph_id == gid).all()
 						edge_list += matching_edges
 
-						# Aggregate all matching edges (DO THIS TWO TIMES SO ORDER OF HEAD OR TAIL NODE DOESN'T MATTER... THIS IS TO RESOLVE UNDIRECTED EDGE SEARCHING)
-						matching_edges = db_session.query(models.Edge).filter(models.Edge.tail_node_id == head_nodes[j]).filter(models.Edge.head_node_id == tail_nodes[i]).filter(models.Edge.user_id == uid).filter(models.Edge.graph_id == gid).all()
-						edge_list += matching_edges
+						# # Aggregate all matching edges (DO THIS TWO TIMES SO ORDER OF HEAD OR TAIL NODE DOESN'T MATTER... THIS IS TO RESOLVE UNDIRECTED EDGE SEARCHING)
+						# matching_edges = db_session.query(models.Edge).filter(models.Edge.tail_node_id == head_nodes[j]).filter(models.Edge.head_node_id == tail_nodes[i]).filter(models.Edge.user_id == uid).filter(models.Edge.graph_id == gid).all()
+						# edge_list += matching_edges
 
 					except NoResultFound:
 						print "No matching edges"
-
-
 
 	else:	
 		# Find node id's that are being searched for (source and target nodes)
@@ -2118,9 +2115,9 @@ def find_edge(uid, gid, edge_to_find, search_type):
 						matching_edges = db_session.query(models.Edge).filter(models.Edge.head_node_id == head_node).filter(models.Edge.tail_node_id == tail_node).filter(models.Edge.user_id == uid).filter(models.Edge.graph_id == gid).all()
 						edge_list += matching_edges
 
-						# Aggregate all matching edges (DO THIS TWO TIMES SO ORDER OF HEAD OR TAIL NODE DOESN'T MATTER... THIS IS TO RESOLVE UNDIRECTED EDGE SEARCHING)
-						matching_edges = db_session.query(models.Edge).filter(models.Edge.tail_node_id == head_node).filter(models.Edge.head_node_id == tail_node).filter(models.Edge.user_id == uid).filter(models.Edge.graph_id == gid).all()
-						edge_list += matching_edges
+						# # Aggregate all matching edges (DO THIS TWO TIMES SO ORDER OF HEAD OR TAIL NODE DOESN'T MATTER... THIS IS TO RESOLVE UNDIRECTED EDGE SEARCHING)
+						# matching_edges = db_session.query(models.Edge).filter(models.Edge.tail_node_id == head_node).filter(models.Edge.head_node_id == tail_node).filter(models.Edge.user_id == uid).filter(models.Edge.graph_id == gid).all()
+						# edge_list += matching_edges
 
 					except NoResultFound:
 						print "No matching edges"
@@ -2147,11 +2144,13 @@ def find_node(uid, gid, node_to_find, search_type):
 
 	# Create database connection
 	db_session = data_connection.new_session()
+	print uid, gid, node_to_find, search_type
 
 	try:
 		id_list = []
 		# Filter by search types
 		if search_type == "partial_search":
+
 			# Get all matching labels
 			labels = db_session.query(models.Node.node_id).filter(models.Node.label.like("%" + node_to_find + "%")).filter(models.Node.user_id == uid).filter(models.Node.graph_id == gid).all()
 

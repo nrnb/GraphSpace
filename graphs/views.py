@@ -1002,6 +1002,21 @@ def help(request):
 
     return render(request, 'graphs/help_users.html', context)
 
+def help_anna(request):
+    '''
+        Render the following pages:
+
+        help/anna
+
+        :param request: HTTP GET Request
+
+    '''
+
+    #handle login
+    context = login(request)
+
+    return render(request, 'graphs/help_anna.html', context)
+
 def help_programmers(request):
     '''
         Render the help/tutorials page.
@@ -1494,8 +1509,7 @@ def renderImage(request):
 
 def shareLayoutWithGroups(request):
     '''
-        Shares graph with specified groups.
-        Unshares graph with specified groups.
+        Toggles shares/unshare graph with specified groups.
 
         :param request:Incoming HTTP POST Request containing:
         {"gid": <name of graph>, "owner": <owner of the graph>, "groups_to_share_with": [group_ids], "groups_not_to_share_with": [group_ids]}
