@@ -1194,15 +1194,9 @@ function getLayoutFromQuery() {
       name: 'random',
       padding: 10,
       fit:true,
-      animate: false,
-      // maxSimulationTime: 1000
+      animate: false
     };
 
-    $("#auto").addClass('active');
-    $("#manual").removeClass('active');
-
-    $('#builtin').addClass('active');
-    $('#custom').removeClass('active');
 
     var query = getQueryVariable("layout");
 
@@ -1239,12 +1233,6 @@ function getLayoutFromQuery() {
         name: "grid"
       }
     } else {
-
-      $("#auto").removeClass('active');
-      // $("#manual").addClass('active');
-
-      $('#builtin').removeClass('active');
-      // $('#custom').addClass('active');
 
        if (layout && layout.json != null) {
         graph_layout = {

@@ -104,6 +104,32 @@ def download(request):
         # redirect to the main page
         return HttpResponseRedirect('/index/')
 
+def view_notifications(request):
+    '''
+        Fetches all notifications for a user of GraphSpace.
+
+        @param uid: User of GraphSpace
+    '''
+
+    context = login(request)
+
+    # See if user is logged in
+    uid = request.session['uid']
+
+    if uid == None: 
+        context['Error'] = "Please create an account or log in to GraphSpace to view notifications!"
+        return render(request, 'graphs/error.html', context)
+
+    context["notifications"] = db.get_notifications_for_user(uid)
+
+    # If there are a lot of tasks, having paging
+    if context['notifications'] != None:
+        pager_context = pager(request, context['notifications'])
+        if type(pager_context) is dict:
+            context.update(pager_context)
+
+    return render(request, 'graphs/notifications.html', context)
+
 def tasks(request, view_type):
 
     context = login(request)

@@ -191,6 +191,48 @@ def get_all_submitted_layouts_for_task(user_id, graph_id):
 		db_session.close()
 		return []
 
+
+def create_event(db_session, event_type, created, description, user_id, graph_id=None, group_id=None, group_owner=None):
+    '''
+        Event creation wrapper.
+    '''
+
+    new_event = models.Event(event_type=event_type, created=datetime.now(), description=description, user_id=user_id, graph_id=graph_id, group_id=group_id, group_owner=group_owner)
+
+    db_session.add(new_event)
+    db_session.commit()
+
+def get_notifications_for_user(uid):
+	'''
+		Retrieves all notifications related to the current user of GraphSpace.
+
+		@param uid: Logged in user
+	'''
+
+	events = []
+
+	# Get database connection 
+	db_session = data_connection.new_session()
+
+	try:
+		# Get all notifications that user has done
+		events += db_session.query(models.Event).filter(models.Event.user_id == uid).all()
+
+	except NoResultFound:
+		"No events by the user."
+
+	try:
+		# Get all events that may be related to a group that the user is a part of
+		user_groups = get_all_groups_with_member(uid) + db_session.query(models.Group).filter(models.Group.owner_id == uid).all()
+
+		for group in user_groups:
+			events += db_session.query(models.Event).filter(models.Event.group_id == group.group_id).filter(models.Event.group_owner == group.owner_id).all()
+
+	except NoResultFound:
+		"No graphs shared with user have any new events"
+
+	return events
+
 def get_available_tasks():
 	'''
 		Returns all (live or expired) tasks that the user created.
@@ -307,7 +349,10 @@ def create_new_task(user_id, graph_id, notes, description):
 	# Add new task to database that expires in 3 days
 	new_task = models.Task(user_id = user_id, graph_id = graph_id, notes = notes, description = description, created = datetime.now(), expires = datetime.now() + timedelta(days=3))
 	db_session.add(new_task)
-	
+
+	# Add to event table
+	create_event(db_session, 4, datetime.now(), user_id + " launched new task for : " + graph_id, user_id, graph_id=graph_id, group_id=None, group_owner=None)
+
 	db_session.commit()
 	db_session.close()
 
@@ -655,6 +700,36 @@ def graph_exists(user_id, graph_id):
 	else:
 		return True
 
+def delete_task(uid, gid):
+	'''
+		Deletes a task.
+
+		@param uid: Owner of graph
+		@param gid: Graph ID
+	'''
+
+	task = get_task(uid, gid)
+
+	if task == None:
+		return
+
+	# Create database connection
+	db_session = data_connection.new_session()
+
+	# Delete the task
+	db_session.delete(task)
+	db_session.commit()
+
+	# Delete any associated task layouts
+	try:
+		layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == gid).filter(models.TaskLayout.user_id == uid).all()
+		for layout in layouts:
+			db_session.delete(layout)
+			db_session.commit()
+
+	except NoResultFound:
+		return
+
 def get_default_layout(uid, gid):
 	'''
 		Gets the default layout for a graph.
@@ -751,8 +826,13 @@ def toggle_accept_task_layout(uid, gid, layout_owner, layout_name):
 
 	if task_layout.accepted == None or task_layout.accepted == 0:
 		task_layout.accepted = 1
+
+		# Add to event table
+		create_event(db_session, 8, datetime.now(), uid + " accepted: " + layout_name + " made by: " + layout_owner + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None)
 	else:
 		task_layout.accepted = None
+		# Add to event table
+		create_event(db_session, 8, datetime.now(), uid + " unaccepted: " + layout_name + " made by: " + layout_owner + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None)
 
 	db_session.commit()
 	db_session.close()
@@ -769,11 +849,12 @@ def reject_task_layout(uid, gid, layout_owner, layout_name):
 		return "Layout does not exist!"
 
 	task_layout.accepted = 0
+	# Add to event table
+	create_event(db_session, 10, datetime.now(), uid + " rejected: " + layout_name + " made by: " + layout_owner + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None)
 	db_session.commit()
 	db_session.close()
 
 	return None
-
 
 def toggle_submit_layout(uid, gid, layout_owner, layout_name, logged_in):
 
@@ -786,6 +867,8 @@ def toggle_submit_layout(uid, gid, layout_owner, layout_name, logged_in):
 
 	if task_layout.submitted == None:
 		task_layout.submitted = 1
+		# Add to event table
+		create_event(db_session, 9, datetime.now(), layout_owner + " submitted: " + layout_name + " made by: " + uid + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None)
 	else:
 		task_layout.submitted = None
 
@@ -2230,7 +2313,6 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 
 	validationErrors = validate_json(graph_json)
 
-	print validationErrors
 	if validationErrors != None:
 		return validationErrors 
 
@@ -2275,6 +2357,9 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 
 	# Insert all tags for this graph into tags database
 	insert_data_for_graph(graphJson, graphname, username, tags, nodes, curTime, 0, db_session)
+
+	# Add to event table
+	create_event(db_session, 1, curTime, username + " created new graph: " + graphname, username, graph_id=graphname, group_id=None, group_owner=None)
 
 	db_session.close()
 	# If everything works, return Nothing 
@@ -2511,6 +2596,9 @@ def delete_graph(username, graphname):
 			db_session.commit()
 		db_session.commit()
 		db_session.close()
+
+		# Add to event table
+		create_event(db_session, 5, datetime.now(), username + " deleted graph: " + graphname, username, graph_id=graphname, group_id=None, group_owner=None)
 
 	except Exception as ex:
 		print ex
@@ -2852,6 +2940,9 @@ def remove_group(owner, group):
 	except NoResultFound:
 		print 'nothing found'
 
+	# Add to event table
+	create_event(db_session, 6, datetime.now(), owner + " deleted group: " + group, owner, graph_id=None, group_id=group, group_owner=owner)
+	
 	db_session.commit()
 	db_session.close()
 	return "Successfully deleted " + group + " owned by " + owner + "."
@@ -2883,6 +2974,10 @@ def create_group(username, groupId):
 	db_session.add(new_group)
 	db_session.commit()
 	db_session.close()
+
+	# Add to event table
+	create_event(db_session, 2, datetime.now(), username + " created new group: " + groupId, username, graph_id=None, group_id=groupId, group_owner=username)
+
 	return [groupId, cleanGroupName(groupId)]
 
 def cleanGroupName(groupName):
@@ -3785,6 +3880,10 @@ def save_layout(graph_id, graph_owner, layout_name, layout_owner, json, public, 
 	# Add the new layout
 	new_layout = models.Layout(layout_id = None, layout_name = layout_name, owner_id = layout_owner, graph_id = graph_id, user_id = graph_owner, json = json, public = public, shared_with_groups = shared_with_groups)
 
+
+	# Add to event table
+	create_event(db_session, 3, datetime.now(), layout_owner + " created new layout: " + layout_name + " for graph: " + graph_id + " owned by " + graph_owner, graph_owner, graph_id=None, group_id=None, group_owner=None)
+
 	db_session.add(new_layout)
 	db_session.commit()
 	db_session.close()
@@ -3820,6 +3919,9 @@ def deleteLayout(uid, gid, layoutToDelete, layout_owner):
 			db_session.commit()
 
 		db_session.delete(layout)
+		# Add to event table
+		create_event(db_session, 7, datetime.now(), layout_owner + " deleted layout: " + layoutToDelete + " for: " + gid + " owned by: " + uid, uid, graph_id=gid, group_id=None, group_owner=None)
+
 		db_session.commit()
 
 		db_session.close()

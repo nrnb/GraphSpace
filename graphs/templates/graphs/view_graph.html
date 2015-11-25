@@ -463,9 +463,17 @@
     </div>
     <!-- end class = side_menu -->
 </div>
+<script type="text/javascript">
+    $("#auto").addClass('active');
+    $('#builtin').addClass('active');
+
+    $("#manual").removeClass('active');
+    $('#custom').removeClass('active');
+</script>
 {% for layout in my_layouts %}
 {% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
 <script type="text/javascript">
+    $("#auto").removeClass("active");
     $("#builtin").removeClass("active");
     $("#manual").addClass('active');
     $('#custom').addClass('active');
@@ -477,7 +485,8 @@
 {% for layout in shared_layouts %}
 {% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
 <script type="text/javascript">
-    $("#builtin").removeClass("active");
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");    
     $("#manual").addClass('active');
     $('#custom').addClass('active');
     $("#shared").addClass('active');
@@ -488,19 +497,25 @@
 {% for layout in accepted_layouts %}
 {% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
 <script type="text/javascript">
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");    
     $("#manual").removeClass('active');
     $("#custom").removeClass('active');
     $("#crowd").addClass('active');
+    $("#design").addClass('active');
     $("#accepted").addClass('active');
-    $("#layouts_accepted_pane").addClass('active');l
-    $("#accepted_layouts_pane").addClass("active");
+    $("#layouts_accepted").addClass('active');
+    $("#layouts_accepted_pane").addClass("active");
 </script>
 {% endif %}
 {% endfor %}
 {% for layout in submitted_layouts %}
 {% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
 <script type="text/javascript">
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");        
     $("#manual").removeClass('active');
+    $("#custom").removeClass('active');
     $("#crowd").addClass('active');
     $("#submitted").addClass('active');
     $("#layouts_submitted").addClass('active');

@@ -48,6 +48,32 @@ Base = declarative_base()
 #=================== End of Junction Tables ===================
 
 # ================== Table Definitions ===================
+class Event(Base):
+    '''The class representing the schema of the event table.'''
+    __tablename__ = 'event'
+
+    event_id = Column(Integer, primary_key = True, autoincrement = True)
+    # 1 means clickable graph link
+    # 2 means clickable group link
+    # 3 means clickable layout link
+    # 4 means clickable task link
+    # 5 means delete graph
+    # 6 means delete group
+    # 7 means deleted layout from graph
+    # 8 means accepted layout for task
+    # 9 means submitted layout for task
+    # 10 means rejected layout for task
+    # 11 means unshared graph
+
+    event_type = Column(Integer, nullable = False)
+    created = Column(TIMESTAMP, nullable = False)
+    description = Column(String, nullable = False)
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"))
+    graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    group_id = Column(String, ForeignKey('group.group_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    group_owner = Column(String, ForeignKey('group.owner_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+
+
 class Task(Base):
     '''The class representing the schema of the task table.'''
     __tablename__ = 'task'

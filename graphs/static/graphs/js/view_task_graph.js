@@ -1,5 +1,6 @@
 $(document).ready(function() {
 
+  extractJSONProperties(graph_json.graph);
 //Renders the cytoscape element on the page
     //with the given options
     window.cy = cytoscape({
@@ -368,17 +369,20 @@ $(document).ready(function() {
 
     $('#accordion_design').accordion({
         collapsible: true,
-        active: false 
+        active: false ,
+        heightStyle: "content"
     });
 
     $("#accordion_information").accordion({
         collapsible: true,
-        active: false 
+        active: false ,
+        heightStyle: "content"
     });
 
     $("#accordion_layouts").accordion({
         collapsible: true,
-        active: false 
+        active: false ,
+        heightStyle: "content"
     });
 
     $("#save_layout").click(function(e) {
@@ -616,6 +620,61 @@ function getQueryVariable(variable)
    }
    return(false);
 }
+
+/**
+ * Get all properties of the JSON
+*/
+function extractJSONProperties(graphJson) {
+  var nodePropertyDictionary = {};
+  var edgePropertyDictionary = {};
+
+  //Get all the node properties
+  for (var i = 0; i < graphJson.nodes.length; i++) {
+    var node = graphJson.nodes[i].data;
+    var keys = Object.keys(node);
+
+    for (var j in keys) {
+      var key = keys[j];
+      if (nodePropertyDictionary.hasOwnProperty(key)) {
+        var curArray = nodePropertyDictionary[key];
+        curArray.push(node[key]);
+        nodePropertyDictionary[key] = curArray;
+      } else {
+        nodePropertyDictionary[key] = [node[key]];
+      }
+    }
+  }
+
+  //Get all the edge properties
+  for (var i = 0; i < graphJson.edges.length; i++) {
+    var edge = graphJson.edges[i].data;
+    var keys = Object.keys(edge);
+
+    for (var j in keys) {
+      var key = keys[j];
+      if (edgePropertyDictionary.hasOwnProperty(key)) {
+        var curArray = edgePropertyDictionary[key];
+        curArray.push(edge[key]);
+        edgePropertyDictionary[key] = curArray;
+      } else {
+        edgePropertyDictionary[key] = [edge[key]];
+      }
+    }
+  }
+
+  //Go through and display all the different properties in template
+  for (var key in nodePropertyDictionary) {
+    $("#design_graph").append("<p style='text-align: left;'>" + key + "</p>");
+    var valueArray = nodePropertyDictionary[key];
+    var checkboxString = "<p style='text-align: left;'>";
+    for (var value in valueArray) {
+      checkboxString += "&nbsp;&nbsp;&nbsp;" + valueArray[value] + '&nbsp;<input type="checkbox">';
+    }
+    checkboxString += "</p>";
+    $("#design_graph").append(checkboxString);
+  }
+
+};
 
 
 });

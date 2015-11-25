@@ -12,6 +12,10 @@ urlpatterns = patterns('',
         url(r'^download/$', views.download, name='download'),
                 
 
+        # notifications
+        url(r'^notifications/', views.view_notifications, name='view_notifications'),
+        url(r'^notifications', views.view_notifications, name='view_notifications'),
+
         # create new task
         url(r'^upload_new_task_through_ui/$', views.upload_task_through_ui, name='upload_task_through_ui'),
         
