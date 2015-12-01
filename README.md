@@ -57,7 +57,8 @@ This section describes the steps required to launch GraphSpace on a server that 
   </Directory>
  ```
 10. Save the file
-11. Restart the apache server
+11. Enable wsgi for apache server: `sudo apt-get install libapache2-mod-wsgi`
+12. Restart the apache server: `sudo service apache2 restart`
 
 Refer to https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/modwsgi/ if any problems occur with the setup.
 
