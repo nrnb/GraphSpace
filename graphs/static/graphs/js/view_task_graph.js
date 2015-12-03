@@ -337,6 +337,8 @@ $(document).ready(function() {
             testNode.style("border-color", "#D8D8D8");
           }
          }
+         console.log(window.cy.elements());
+         console.log(graph_json.graph);
         });
 
         $("#unselect_button").click(function (e) {

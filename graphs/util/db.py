@@ -19,7 +19,7 @@ import sqlalchemy, sqlalchemy.orm
 from graphs.util.db_conn import Database
 import graphs.util.db_init as db_init
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy import and_, or_, tuple_
+from sqlalchemy import and_, or_, tuple_, desc
 from sqlalchemy import distinct
 
 import graphs.models as models
@@ -230,6 +230,8 @@ def get_notifications_for_user(uid):
 
 	except NoResultFound:
 		"No graphs shared with user have any new events"
+
+	# events.order_by(models.Event.created)
 
 	return events
 
