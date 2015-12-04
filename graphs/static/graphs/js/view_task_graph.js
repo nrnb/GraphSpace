@@ -263,6 +263,7 @@ $(document).ready(function() {
   	        console.log('working');
   	      }, function() {
   	        console.log('done');
+            applyLayoutStyles();
   	    });
 
 	    // enable user panning (hold the left mouse button to drag
@@ -390,8 +391,6 @@ $(document).ready(function() {
 
     $("#save_layout").click(function(e) {
         e.preventDefault();
-
-        test();
 
         var userId = $("#userId").text();
         var graphId = $("#graphId").text();
@@ -611,14 +610,24 @@ $(document).ready(function() {
           var baseLoc = loc.substring(0, loc.indexOf("?"));
           window.location.href = baseLoc;
       }
-
-      // parsed_json = JSON.parse(layout.json);
-      // for (var i in parsed_json) {
-      //   key = parsed_json[i];
-      //   // window.cy.$('[id="' + key + '"]').css('background-color', parsed_json[key]["background_color"]);
-      // }
     }
     return graph_layout;
+}
+
+
+function applyLayoutStyles() {
+  parsed_json = JSON.parse(layout.json);
+    for (var i in parsed_json) {
+      node_obj = parsed_json[i];
+      
+      if (node_obj.hasOwnProperty("background_color")) {
+        window.cy.$('[id="' + i + '"]').css('background-color', node_obj["background_color"]);
+      }
+
+      if (node_obj.hasOwnProperty("shape")) {
+        window.cy.$('[id="' + i + '"]').css('shape', node_obj["shape"]);
+      }
+    }
 }
 
 /** 
@@ -744,10 +753,8 @@ function extractJSONProperties(graphJson) {
     for (var index in valueArray) {
       var value = valueArray[index];
       if (key == "background_color") {
-        console.log("1");
         checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
       } else {
-        console.log("2");
         checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value +'&nbsp;&nbsp;&nbsp;';
 
         dropDownString += '<option value="'+value+'">'+value+'</option>';
@@ -762,7 +769,6 @@ function extractJSONProperties(graphJson) {
     }
 
     $(".canvas").each(function() {
-      console.log($(this)[0].id);
       $(this)[0].getContext("2d").fillStyle = "#"+$(this)[0].id;
       $(this)[0].getContext("2d").fillRect(0,0,20,20);
     });
