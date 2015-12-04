@@ -64,15 +64,31 @@
             <h3>Design Graph<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
             <div class="accordion_content test">
                 <div style="text-align: center;" id="design_graph" class="input-group">
-                    
+                    <h3>Selection</h3>
+                    <div style="text-align: center;" id="selection" class="input-group">
+                    </div>
+                    <h3>Modify</h3>
+                    <div style="text-align: center;" id="modify" class="input-group">
+                      <p style='text-align: left;'>Modify Color:
+                      <button
+                          class="jscolor {valueElement:'valueInput',value:'66ccff'}"
+                          style="width:50px; height:20px; border-style: none;"><div hidden id="valueInput"></div></button></p>
+                          
+                      <p id="modifyShape" style='text-align: left;'>Modify Shape: </p>
+
+                    </div>
+                    <div>
+                      <button class="btn btn-primary" id="save_modified">Save Modified Graph</button>
+                    </div>
                 	<!-- <button class="btn btn-success" name="move_green_right_button" id="move_green_right_button">Move Green Right</button>
                     <button class="btn btn-success" name="move_green_square_down_button" id="move_green_square_down_button">Move Green Square Down</button>
                     <button class="btn btn-info" name="select_purple_button" id="select_purple_button">Select All Purple</button> -->
-                    <button class="btn btn-info" name="select_circle_button" id="select_circle_button">Select All Circles</button>
+                    <!-- <button class="btn btn-info" name="select_circle_button" id="select_circle_button">Select All Circles</button>
                     <button class="btn btn-info" name="move_selected_down_button" id="move_selected_down_button">Move Selected Down</button>
                     <button class="btn btn-success" name="change_selected_color_button" id="change_selected_color_button">Change Selected Color</button>
-                    <button class="btn btn-danger" name="unselect_button" id="unselect_button">Reset Selection</button>
+                    <button class="btn btn-danger" name="unselect_button" id="unselect_button">Reset Selection</button> -->
                 </div>
+                  <!-- <br>
                   <br>
                   <br>
                   <br>
@@ -85,8 +101,7 @@
                   <br>
                   <br>
                   <br>
-                  <br>
-                  <br>
+                  <br> -->
             </div>
         </div>
 

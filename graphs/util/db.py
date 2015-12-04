@@ -3982,10 +3982,17 @@ def cytoscapePresetLayout(csWebJson):
 	# csJson format: [id of node: {x: x coordinate of node, y: y coordinate of node},...]
 
 	for node_position in csWebJson:
-		csJson[str(node_position['id'])] = {
+		key = str(node_position['id'])
+		csJson[key] = {
 			'x': node_position['x'],
 			'y': node_position['y']
 		};
+
+		if 'background_color' in node_position:
+			csJson[key]['background_color'] = node_position['background_color']
+
+		if 'shape' in node_position:
+			csJson[key]['shape'] = node_position['shape']
 
 	return json.dumps(csJson)
 

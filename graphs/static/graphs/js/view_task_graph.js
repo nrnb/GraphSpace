@@ -1,6 +1,20 @@
 $(document).ready(function() {
 
+  function test() {
+         for (var i = 0; i < window.cy.elements('node').length; i++) {
+          var testNode = window.cy.elements('node')[i];
+
+          if (testNode.selected() && testNode.isNode()) {
+            testNode.style("background-color", "#FFFFFF");
+            testNode.style("text-outline-color", "#FFFFFF");
+            testNode.style("border-color", "#FFFFFF");
+
+          }
+         }
+        };
+  var nodeIDDictionary = {};
   extractJSONProperties(graph_json.graph);
+
 //Renders the cytoscape element on the page
     //with the given options
     window.cy = cytoscape({
@@ -314,29 +328,18 @@ $(document).ready(function() {
 
         $("#move_selected_down_button").click(function (e) {
          e.preventDefault();
+         // console.log(graph_json.graph);
          for (var i = 0; i < window.cy.elements().length; i++) {
           var testNode = window.cy.elements()[i];
           var nodeColor = testNode.style("background-color");
           var nodeShape = testNode.style("shape");
 
-          if (testNode.selected()) {
+          if (testNode.selected() && testNode.isNode()) {
             var tempPosition = testNode.renderedPosition();
-            testNode.renderedPosition({x:tempPosition.x, y:tempPosition.y + 50});  
+            testNode.renderedPosition({x:tempPosition.x, y:tempPosition.y + 50});
           }
          }
-        });
-
-        $("#change_selected_color_button").click(function (e) {
-         e.preventDefault();
-         for (var i = 0; i < window.cy.elements().length; i++) {
-          var testNode = window.cy.elements()[i];
-
-          if (testNode.selected()) {
-            testNode.style("background-color", "#D8D8D8");
-            testNode.style("text-outline-color", "#D8D8D8");
-            testNode.style("border-color", "#D8D8D8");
-          }
-         }
+         // console.log(graph_json.graph);
         });
 
         $("#unselect_button").click(function (e) {
@@ -388,6 +391,8 @@ $(document).ready(function() {
     $("#save_layout").click(function(e) {
         e.preventDefault();
 
+        test();
+
         var userId = $("#userId").text();
         var graphId = $("#graphId").text();
         var loggedIn = $("#loggedIn").text();
@@ -411,7 +416,9 @@ $(document).ready(function() {
            var nodeData = {
             'x': nodes[i]._private.position.x,
             'y': nodes[i]._private.position.y,
-            'id': nodes[i]._private.data.id
+            'id': nodes[i]._private.data.id,
+            'background_color': nodes[i]._private['style']['background-color']['strValue'],
+            'shape': nodes[i]._private['style']['shape']['strValue']
            };
            layout.push(nodeData);
         }
@@ -433,7 +440,6 @@ $(document).ready(function() {
           }
         });
     });
-
 
     function getLayoutFromQuery() {
 
@@ -553,6 +559,12 @@ $(document).ready(function() {
           var baseLoc = loc.substring(0, loc.indexOf("?"));
           window.location.href = baseLoc;
       }
+
+      parsed_json = JSON.parse(layout.json);
+      for (var i in parsed_json) {
+        key = parsed_json[i];
+        window.cy.$('[id="' + key + '"]').css('background-color', parsed_json[key]["background_color"]);
+      }
     }
     return graph_layout;
 }
@@ -631,16 +643,23 @@ function extractJSONProperties(graphJson) {
   //Get all the node properties
   for (var i = 0; i < graphJson.nodes.length; i++) {
     var node = graphJson.nodes[i].data;
+
+    nodeIDDictionary[node.id] = node;
+
     var keys = Object.keys(node);
 
     for (var j in keys) {
       var key = keys[j];
-      if (nodePropertyDictionary.hasOwnProperty(key)) {
-        var curArray = nodePropertyDictionary[key];
-        curArray.push(node[key]);
-        nodePropertyDictionary[key] = curArray;
-      } else {
-        nodePropertyDictionary[key] = [node[key]];
+      if (key == "shape" || key == "background_color") {
+        if (nodePropertyDictionary.hasOwnProperty(key)) {
+          var curArray = nodePropertyDictionary[key];
+          if (curArray.indexOf(node[key]) == -1) {
+            curArray.push(node[key]);
+            nodePropertyDictionary[key] = curArray;
+          }
+        } else {
+          nodePropertyDictionary[key] = [node[key]];
+        }
       }
     }
   }
@@ -664,17 +683,150 @@ function extractJSONProperties(graphJson) {
 
   //Go through and display all the different properties in template
   for (var key in nodePropertyDictionary) {
-    $("#design_graph").append("<p style='text-align: left;'>" + key + "</p>");
+    $("#selection").append("<p style='text-align: left;'>" + key + "</p>");
     var valueArray = nodePropertyDictionary[key];
     var checkboxString = "<p style='text-align: left;'>";
-    for (var value in valueArray) {
-      checkboxString += "&nbsp;&nbsp;&nbsp;" + valueArray[value] + '&nbsp;<input type="checkbox">';
+    if (key == "shape") {
+      var dropDownString = "<select>"
+    }
+    for (var index in valueArray) {
+      var value = valueArray[index];
+      if (key == "background_color") {
+        console.log("1");
+        checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
+      } else {
+        console.log("2");
+        checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value +'&nbsp;&nbsp;&nbsp;';
+
+        dropDownString += '<option value="'+value+'">'+value+'</option>';
+      }
     }
     checkboxString += "</p>";
-    $("#design_graph").append(checkboxString);
-  }
+    $("#selection").append(checkboxString);
+    
+    if (key == "shape") {
+      dropDownString += "</select>";
+      $("#modifyShape").append(dropDownString);
+    }
 
+    $(".canvas").each(function() {
+      console.log($(this)[0].id);
+      $(this)[0].getContext("2d").fillStyle = "#"+$(this)[0].id;
+      $(this)[0].getContext("2d").fillRect(0,0,20,20);
+    });
+  }
 };
+var modifiedColor
+$('#valueInput').bind("DOMSubtreeModified", function() {
+  modifiedColor = $(this).text();
+});
+
+var colorValues = []
+
+$('input:checkbox[name=colors]').click(function() {
+  colorValues = $('input:checkbox[name=colors]:checked').map(function() {
+    return "#" + this.id
+  }).get();
+  
+  combineSelections("background-color", colorValues, "shape", shapeValues);
+
+});
+
+var shapeValues = []
+
+$('input:checkbox[name=shapes]').click(function() {
+  shapeValues = $('input:checkbox[name=shapes]:checked').map(function() {
+    return this.id
+  }).get();
+
+  combineSelections("shape", shapeValues, "background-color", colorValues);
+});
+
+function combineSelections(selection1, selectionArray1, selection2, selectionArray2) {
+
+    var matching_shape_nodes = []
+
+    var shapes = []
+    for (var i = 0; i < selectionArray1.length; i++) {
+        var shape = selectionArray1[i];
+      for (var j = 0; j < window.cy.nodes().length; j++) {
+            var node = window.cy.nodes()[j];
+
+            var nodeShape = node.style(selection1);
+            if (selectionArray1.indexOf(nodeShape) != -1) {
+              shapes.push(nodeShape);
+              matching_shape_nodes.push(node["_private"]["data"]["id"]);
+            }
+      }
+    }
+
+    var matching_color_nodes = []
+    var colors = []
+    for (var i = 0; i < selectionArray2.length; i++) {
+        var color = selectionArray2[i];
+      for (var j = 0; j < window.cy.nodes().length; j++) {
+            var node = window.cy.nodes()[j];
+
+            var nodeColor = node.style(selection2);
+            if (selectionArray2.indexOf(nodeColor) != -1) {
+              colors.push(nodeColor);
+              matching_color_nodes.push(node["_private"]["data"]["id"]);
+            }
+      }
+    }
+
+    matching_nodes = []
+    if (selectionArray2.length > 0 && selectionArray1.length > 0) {
+      matching_nodes = intersect(matching_shape_nodes, matching_color_nodes);
+    } else if (selectionArray2.length > 0) {
+      matching_nodes = matching_color_nodes;
+    } else {
+      matching_nodes = matching_shape_nodes;
+    }
+
+    cy.nodes().unselect();
+
+    for (var i = 0; i < matching_nodes.length; i++) {
+      cy.$("#" + matching_nodes[i]).select();
+    }
+}
+
+$("#save_modified").click(function (e) {
+    e.preventDefault();
+
+    // //Replaces all spaces with '_' character for ease of saving
+    // var layoutName = $("#layout_name").val();
+    // if (layoutName && layoutName.length > 0) {
+    //   layoutName = layoutName.replace(" ", "_");
+    // }
+
+    // //When save is clicked, it gets location of all the nodes and saves it
+    // //so that nodes can be placed in this location later on
+    // var nodes = window.cy.elements('node');
+    // var layout = [];
+    // for (var i = 0; i < Object.keys(nodes).length - 2; i++) {
+    //    var nodeData = {
+    //     'x': nodes[i]._private.position.x,
+    //     'y': nodes[i]._private.position.y,
+    //     'id': nodes[i]._private.data.id,
+    //     'background_color': nodes[i]._private.data["background_color"],
+    //     'shape': nodes[i]._private.data["shape"],
+
+    //    };
+    //    layout.push(nodeData);
+    // }
+
+
+
+});
+
+function intersect(a, b) {
+    var t;
+    if (b.length > a.length) t = b, b = a, a = t; // indexOf to loop over shorter
+    return a.filter(function (e) {
+        if (b.indexOf(e) !== -1) return true;
+    });
+}
 
 
 });
