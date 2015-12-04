@@ -384,7 +384,7 @@ $(document).ready(function() {
 
     $("#accordion_layouts").accordion({
         collapsible: true,
-        active: false ,
+        active: true ,
         heightStyle: "content"
     });
 
@@ -457,10 +457,14 @@ $(document).ready(function() {
         "layout_owner": layout_owner
       }, function (data) {
         var messages = data.Message.feedback;
-        $("#layout_feedback_list").html("");
+        $("#layout_feedback").html("");
         for (var i = 0; i < messages.length; i++) {
           var message = messages[i];
-          $("#layout_feedback_list").append("<li>" + message[0] + " said: " + message[1]);
+          if (message[0] == loggedIn) {
+            $("#layout_feedback").append("<div class='mess'><div class='me'>" + message[0] + " said: " + message[1] + "</div></div><br>");
+          } else {
+            $("#layout_feedback").append("<div class='mess'><div class='other'>" + message[0] + " said: " + message[1] + "</div></div><br>");
+          }
         }
       });
 
@@ -485,7 +489,7 @@ $(document).ready(function() {
         }, function (data) {
           if (data.StatusCode == 201) {
             $("#feedback_note").val("");
-            $("#layout_feedback_list").append("<li>" + loggedIn + " said: " + new_note);
+            $("#layout_feedback").append("<div class='mess'><div class='me'>" + loggedIn + " said: " + new_note + "</div></div><br>");
           }
         });
       });
@@ -615,18 +619,21 @@ $(document).ready(function() {
 
 
 function applyLayoutStyles() {
-  parsed_json = JSON.parse(layout.json);
-    for (var i in parsed_json) {
-      node_obj = parsed_json[i];
-      
-      if (node_obj.hasOwnProperty("background_color")) {
-        window.cy.$('[id="' + i + '"]').css('background-color', node_obj["background_color"]);
-      }
+  if (layout) {
 
-      if (node_obj.hasOwnProperty("shape")) {
-        window.cy.$('[id="' + i + '"]').css('shape', node_obj["shape"]);
+    parsed_json = JSON.parse(layout.json);
+      for (var i in parsed_json) {
+        node_obj = parsed_json[i];
+        
+        if (node_obj.hasOwnProperty("background_color")) {
+          window.cy.$('[id="' + i + '"]').css('background-color', node_obj["background_color"]);
+        }
+
+        if (node_obj.hasOwnProperty("shape")) {
+          window.cy.$('[id="' + i + '"]').css('shape', node_obj["shape"]);
+        }
       }
-    }
+  }
 }
 
 /** 
@@ -747,7 +754,6 @@ function extractJSONProperties(graphJson) {
 
     for (var index in valueArray) {
       var value = colourNameToHex(valueArray[index]);
-      console.log(value);
       if (key == "background_color") {
           checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
       } else {

@@ -59,8 +59,7 @@
                 <form method="post" id="layout_form" class="layout_form" role="form">
                     <div class="layout_fields">
                         <div class="control-group">
-                            <label for="layout_feedback">Notes</label>
-                            <div id="layout_feedback"><ul id="layout_feedback_list"></ul></div>
+                            <div id="layout_feedback"></div>
                         </div>
                         <div class="control-group">
                           <label for="feedback_note">New Note</label>
@@ -202,11 +201,16 @@
                                             <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Unsubmit Layout" value="{{o.layout_name}}" style="float: left;">
                                               <span class="glyphicon glyphicon glyphicon-minus-sign"></span>
                                             </button>
+                                            <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
+                                            </button>
+                                        {% else %}
+                                        <br><br>
+                                        <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
+                                            </button>
                                         {% endif %}
                                         
-                                        <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
-                                          <span class="glyphicon glyphicon-transfer"></span>
-                                        </button>
                                         <div style="clear: both;"></div>
                                         </a>
                                     {% endfor %}
