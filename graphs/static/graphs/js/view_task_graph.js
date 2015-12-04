@@ -768,9 +768,21 @@ function extractJSONProperties(graphJson) {
     });
   }
 };
+
 var modifiedColor
 $('#valueInput').bind("DOMSubtreeModified", function() {
-  modifiedColor = $(this).text();
+  modifiedColor = "#" + $(this).text();
+
+  for (var j = 0; j < window.cy.nodes().length; j++) {
+        var node = window.cy.nodes()[j];
+
+        if (node.selected()) {
+          node.style("background-color", modifiedColor);
+          node.style("border-color", modifiedColor);
+          node.style("text-outline-color", modifiedColor);
+        }
+  }
+
 });
 
 var colorValues = []
