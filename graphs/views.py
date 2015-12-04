@@ -104,6 +104,17 @@ def download(request):
         # redirect to the main page
         return HttpResponseRedirect('/index/')
 
+def get_notification_count(request):
+
+    if request.POST:
+        uid = request.POST["uid"]
+
+        notifications = db.get_notifications_for_user(uid)
+
+        return HttpResponse(json.dumps(db.sendMessage(200, len(notifications)), indent=4, separators=(',', ': ')), content_type="application/json")
+    else:
+        return HttpResponse(json.dumps(db.throwError(404, "No Such Graph Exists."), indent=4, separators=(',', ': ')), content_type="application/json")
+
 def view_notifications(request):
     '''
         Fetches all notifications for a user of GraphSpace.
@@ -120,7 +131,7 @@ def view_notifications(request):
         context['Error'] = "Please create an account or log in to GraphSpace to view notifications!"
         return render(request, 'graphs/error.html', context)
 
-    context["notifications"] = db.get_notifications_for_user(uid)
+    context["notifications"] = db.get_notifications_for_user(uid, save_access_time=True)
 
     # If there are a lot of tasks, having paging
     if context['notifications'] != None:
@@ -222,7 +233,10 @@ def view_task(request, uid, gid):
     context['my_layouts'] = db.get_all_layouts_for_task_for_user(uid, gid, request.session['uid'])
 
     # Get all layouts that any other designer submitted for task
-    context['submitted_layouts'] = db.get_all_submitted_tasks_for_graph(uid, gid)
+    context['submitted_layouts'] = db.get_all_submitted_layouts_for_task(uid, gid)
+
+    # Get all layouts that any other researcher accepted for task
+    context['accepted_layouts'] = db.get_all_accepted_layouts_for_task(uid, gid)
 
     # IF there are elements in the graph, give filters to change k values of graph
     if len(json_data['graph']['edges']) > 0 and 'k' in json_data['graph']['edges'][0]['data']:
@@ -386,8 +400,9 @@ def save_task_layout_through_ui(request):
         layout_owner = request.POST['layout_owner']
         layout_name = request.POST['layout_name']
         layout = request.POST['layout']
+        feedback = request.POST['feedback']
 
-        error = save_task_layout(user_id, graph_id, layout_owner, layout_name, layout)
+        error = save_task_layout(user_id, graph_id, layout_owner, layout_name, layout, feedback)
 
         if error == None:
             return HttpResponse(json.dumps(db.sendMessage(201, "Layout saved for this task!")), content_type="application/json")
@@ -398,7 +413,58 @@ def save_task_layout_through_ui(request):
         error = "Please make only POST requests to this path!"
         return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
 
-def save_task_layout(uid, gid, loggedIn, layout_name, layout):
+def add_feedback_note(request):
+
+    if request.POST:
+        uid = request.session['uid']
+
+        # If not logged in, can't create a new task
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+        layout_owner = request.POST['layout_owner']
+        layout_name = request.POST['layout_name']
+        feedback_owner = request.POST['feedback_owner']
+        note = request.POST['note']
+
+        error = db.add_feedback_note(user_id, graph_id, layout_owner, layout_name, feedback_owner, note)
+
+        if error == None:
+            return HttpResponse(json.dumps(db.sendMessage(201, "Feedback Added!")), content_type="application/json")
+        else:
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+    else:
+        error = "Please make only POST requests to this path!"
+        return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json")
+
+def fetch_feedback(request):
+
+    if request.POST:
+        uid = request.session['uid']
+
+        # If not logged in, can't create a new task
+        if uid == None:
+            error = "Please create an account or log in to GraphSpace to upload tasks!"
+            return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
+
+        user_id = request.POST['user_id']
+        graph_id = request.POST['graph_id']
+        layout_owner = request.POST['layout_owner']
+        layout_name = request.POST['layout_name']
+    
+        feedback = db.fetch_feedback(user_id, graph_id, layout_owner, layout_name)
+
+        return HttpResponse(json.dumps(db.sendMessage(200, {"feedback": feedback})), content_type="application/json")
+
+    else:
+        error = "Please make only POST requests to this path!"
+        return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json")
+
+def save_task_layout(uid, gid, loggedIn, layout_name, layout, feedback):
 
     if uid == None:
         return "Please enter the owner of this graph"
@@ -412,7 +478,7 @@ def save_task_layout(uid, gid, loggedIn, layout_name, layout):
     if layout_name == None:
         return "Must provide a name for saving a layout"
 
-    return db.save_task_layout(uid, gid, loggedIn, layout_name, layout)
+    return db.save_task_layout(uid, gid, loggedIn, layout_name, layout, feedback)
 
 
 def graphs(request):
@@ -1578,8 +1644,6 @@ def graph_exists(request, user_id, graphname):
             return HttpResponse(json.dumps(db.userNotFoundError(), indent=4, separators=(',', ': ')), content_type="application/json")
 
         graph_exists = db.graph_exists(user_id, graphname)
-
-        print "Graph exists:", graph_exists
 
         if graph_exists == False:
             return HttpResponse(json.dumps(db.throwError(404, "User " + user_id + " owns no graph with id " + graphname + "!"), indent=4, separators=(',', ': ')), content_type="application/json")

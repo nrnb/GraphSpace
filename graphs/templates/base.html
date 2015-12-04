@@ -36,6 +36,7 @@
   </head>
 
   <body>
+    <p id="logged_in" style="display:none;">{{uid}}</p>
 
     <!-- Create Modal -->
     <div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -107,7 +108,7 @@
                     {% if uid != None %}
                         <li><a href="{% url 'groups' %}">Groups</a></li>
                         <li><a href="{% url 'my_tasks' %}">Tasks</a></li>
-                        <li><a href="{% url 'view_notifications' %}">Notifications</a></li>
+                        <li><a href="{% url 'view_notifications' %}">Notifications <p style="display: inline;" id="notifications"></p></a></li>
                     {% endif %}
                     <li><a href="{% url 'features' %}">Features</a></li>
                     <li><a href="{% url 'help_tutorial' %}">Help</a></li>

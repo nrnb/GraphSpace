@@ -339,7 +339,7 @@ $(document).ready(function() {
             testNode.renderedPosition({x:tempPosition.x, y:tempPosition.y + 50});
           }
          }
-         // console.log(graph_json.graph);
+
         });
 
         $("#unselect_button").click(function (e) {
@@ -424,6 +424,7 @@ $(document).ready(function() {
         }
 
         layout = JSON.stringify(layout);
+        var feedback = $("#layout_note").val();
 
         //Post information about layout to GraphSpace
         $.post("../../save_task_layout_through_ui/", {
@@ -431,7 +432,8 @@ $(document).ready(function() {
           "graph_id": graphId,
           "layout_name": layoutName,
           "layout_owner": loggedIn,
-          "layout": layout
+          "layout": layout,
+          "feedback": feedback
         }, function( data ) {
           if (data.StatusCode == 201) {
             window.location.href = $("#taskURL").text() + "?layout=" + layoutName + "&layout_owner=" + loggedIn
@@ -439,6 +441,56 @@ $(document).ready(function() {
             alert(data.Error);
           }
         });
+    });
+
+    $(".feedback").click(function(e) {
+      e.preventDefault();
+
+      var layout_name = $(this).val();
+      var layout_owner = $(this).attr("id");
+      var userId = $("#userId").text();
+      var graphId = $("#graphId").text();
+      var loggedIn = $("#loggedIn").text();
+
+      $.post("../../fetch_feedback/", {
+        "user_id": userId,
+        "graph_id": graphId,
+        "layout_name": layout_name,
+        "layout_owner": layout_owner
+      }, function (data) {
+        var messages = data.Message.feedback;
+        $("#layout_feedback_list").html("");
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          $("#layout_feedback_list").append("<li>" + message[0] + " said: " + message[1]);
+        }
+      });
+
+      $("#feedback_model").modal('toggle');
+
+      $("#save_new_note").click(function (e) {
+        e.preventDefault();
+
+        var new_note = $("#feedback_note").val();
+
+        if (new_note.length == 0) {
+          return alert("Please enter some notes!");
+        }
+
+        $.post("../../add_feedback_note/", {
+          "user_id": userId,
+          "graph_id": graphId,
+          "layout_name": layout_name,
+          "layout_owner": layout_owner,
+          "feedback_owner": loggedIn,
+          "note": new_note
+        }, function (data) {
+          if (data.StatusCode == 201) {
+            $("#feedback_note").val("");
+            $("#layout_feedback_list").append("<li>" + loggedIn + " said: " + new_note);
+          }
+        });
+      });
     });
 
     function getLayoutFromQuery() {
@@ -560,11 +612,11 @@ $(document).ready(function() {
           window.location.href = baseLoc;
       }
 
-      parsed_json = JSON.parse(layout.json);
-      for (var i in parsed_json) {
-        key = parsed_json[i];
-        window.cy.$('[id="' + key + '"]').css('background-color', parsed_json[key]["background_color"]);
-      }
+      // parsed_json = JSON.parse(layout.json);
+      // for (var i in parsed_json) {
+      //   key = parsed_json[i];
+      //   // window.cy.$('[id="' + key + '"]').css('background-color', parsed_json[key]["background_color"]);
+      // }
     }
     return graph_layout;
 }
@@ -799,7 +851,6 @@ $("#save_modified").click(function (e) {
     // if (layoutName && layoutName.length > 0) {
     //   layoutName = layoutName.replace(" ", "_");
     // }
-
     // //When save is clicked, it gets location of all the nodes and saves it
     // //so that nodes can be placed in this location later on
     // var nodes = window.cy.elements('node');

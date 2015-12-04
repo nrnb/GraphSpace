@@ -3,6 +3,8 @@
  */
 $(document).ready(function() {
 
+	getUnseenNotifications();
+
 	$(".content").css('visibility', 'visible');
 
 	/**
@@ -146,5 +148,17 @@ $(document).ready(function() {
 			});
 		}
 	});
+
+	function getUnseenNotifications() {
+		var uid = $("#logged_in").text();
+		$("#notifications").html("");
+		$.post(window.location.origin + "/get_notification_count/", {
+			uid: uid
+		}, function(data) {
+			if (data.Message > 0) {
+				$("#notifications").html(" (" + data.Message + ")");
+			}
+		});
+	}
 
 });

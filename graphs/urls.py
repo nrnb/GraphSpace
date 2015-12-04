@@ -10,11 +10,16 @@ urlpatterns = patterns('',
         url(r'^index/$', views.index, name='index'),
         url(r'^index/logout/$', views.logout, name='logout'),
         url(r'^download/$', views.download, name='download'),
-                
+
+        # fetch feedback for task
+        url(r'^fetch_feedback/', views.fetch_feedback, name='fetch_feedback'),
+        url(r'^add_feedback_note/', views.add_feedback_note, name='add_feedback_note'),
+
 
         # notifications
         url(r'^notifications/', views.view_notifications, name='view_notifications'),
         url(r'^notifications', views.view_notifications, name='view_notifications'),
+        url(r'^get_notification_count/', views.get_notification_count, name='get_notification_count'),
 
         # create new task
         url(r'^upload_new_task_through_ui/$', views.upload_task_through_ui, name='upload_task_through_ui'),
