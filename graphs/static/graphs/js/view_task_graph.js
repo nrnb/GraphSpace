@@ -12,7 +12,6 @@ $(document).ready(function() {
           }
          }
         };
-  var nodeIDDictionary = {};
   extractJSONProperties(graph_json.graph);
 
 //Renders the cytoscape element on the page
@@ -705,8 +704,6 @@ function extractJSONProperties(graphJson) {
   for (var i = 0; i < graphJson.nodes.length; i++) {
     var node = graphJson.nodes[i].data;
 
-    nodeIDDictionary[node.id] = node;
-
     var keys = Object.keys(node);
 
     for (var j in keys) {
@@ -747,26 +744,17 @@ function extractJSONProperties(graphJson) {
     $("#selection").append("<p style='text-align: left;'>" + key + "</p>");
     var valueArray = nodePropertyDictionary[key];
     var checkboxString = "<p style='text-align: left;'>";
-    if (key == "shape") {
-      var dropDownString = "<select>"
-    }
+
     for (var index in valueArray) {
       var value = valueArray[index];
       if (key == "background_color") {
         checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
       } else {
         checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value +'&nbsp;&nbsp;&nbsp;';
-
-        dropDownString += '<option value="'+value+'">'+value+'</option>';
       }
     }
     checkboxString += "</p>";
     $("#selection").append(checkboxString);
-    
-    if (key == "shape") {
-      dropDownString += "</select>";
-      $("#modifyShape").append(dropDownString);
-    }
 
     $(".canvas").each(function() {
       $(this)[0].getContext("2d").fillStyle = "#"+$(this)[0].id;
@@ -789,6 +777,19 @@ $('#valueInput').bind("DOMSubtreeModified", function() {
         }
   }
 
+});
+
+var modifiedShape
+$("#modifyShapeSelection").change(function (){
+    modifiedShape = $(this).val();
+
+      for (var j = 0; j < window.cy.nodes().length; j++) {
+            var node = window.cy.nodes()[j];
+
+            if (node.selected()) {
+              node.style("shape", modifiedShape);
+            }
+      }
 });
 
 var colorValues = []
