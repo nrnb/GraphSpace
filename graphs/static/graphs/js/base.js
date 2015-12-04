@@ -3,6 +3,8 @@
  */
 $(document).ready(function() {
 
+	getUnseenNotifications();
+
 	$(".content").css('visibility', 'visible');
 
 	/**
@@ -147,38 +149,16 @@ $(document).ready(function() {
 		}
 	});
 
-	/*
-		--- TO DELETE ---
-
-		DELETE THIS CODE AT CODE INSPECTION 
-		$("#add_graph").click(function() {
-			window.location.href = "/graphs/create";
-		});
-
-		$("input[name='shared']").on("change", function () {
-		    if (this.value === 'private') {
-		    	$("#shared_groups").css('display', 'block');
-		    } else {
-		    	$("#shared_groups").css('display', 'none');
-		    }
-		});
-
-		$("#submit_graph").click(function(e) {
-			e.preventDefault();
-			var graphName = $("#graph_name").val();
-			var tags = $("#tags").val();
-			var priv = $("#shared")
-			var pub = $("#shared2");
-			var groups = $("#groups").val();
-
-			if (!graphName || graphName.length == 0) {
-				alert("Please enter a name for the graph!");
-				return;
+	function getUnseenNotifications() {
+		var uid = $("#logged_in").text();
+		$("#notifications").html("");
+		$.post(window.location.origin + "/get_notification_count/", {
+			uid: uid
+		}, function(data) {
+			if (data.Message > 0) {
+				$("#notifications").html(" (" + data.Message + ")");
 			}
-
-			$("#add_graph_form").submit();
 		});
+	}
 
-		--- END DELETE ---
-	*/
 });

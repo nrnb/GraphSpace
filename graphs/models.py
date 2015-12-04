@@ -14,6 +14,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Table, Index, Foreig
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import TIMESTAMP
+from sqlalchemy.types import Text
 from django.db import models
 from django.conf import settings
 from sqlalchemy import create_engine
@@ -47,6 +48,52 @@ Base = declarative_base()
 #=================== End of Junction Tables ===================
 
 # ================== Table Definitions ===================
+class Event(Base):
+    '''The class representing the schema of the event table.'''
+    __tablename__ = 'event'
+
+    event_id = Column(Integer, primary_key = True, autoincrement = True)
+    # 1 means clickable graph link
+    # 2 means clickable group link
+    # 3 means clickable layout link
+    # 4 means clickable task link
+    # 5 means delete graph
+    # 6 means delete group
+    # 7 means deleted layout from graph
+    # 8 means accepted layout for task
+    # 9 means submitted layout for task
+    # 10 means rejected layout for task
+    # 11 means unshared graph
+    # 12 means new feedback note
+
+    event_type = Column(Integer, nullable = False)
+    created = Column(TIMESTAMP, nullable = False)
+    description = Column(String, nullable = False)
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"))
+    graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    group_id = Column(String, ForeignKey('group.group_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    group_owner = Column(String, ForeignKey('group.owner_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    layout_name = Column(String, nullable = True)
+    layout_owner = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+
+class LastAccess(Base):
+    '''The class representing the schema of the last time user accessed notifications page.'''
+    __tablename__ = 'last_accessed'
+
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), primary_key = True)
+    accessed = Column(TIMESTAMP, nullable = False)
+
+class Task(Base):
+    '''The class representing the schema of the task table.'''
+    __tablename__ = 'task'
+
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    description = Column(String, nullable = True)
+    created = Column(TIMESTAMP, nullable = False)
+    expires = Column(TIMESTAMP, nullable = False)
+    notes = Column(Text, nullable = False)
+
 class GroupToUser(Base):
     '''The class representing the schema of the group_to_user table.'''
     __tablename__ = 'group_to_user'
@@ -146,6 +193,40 @@ class GraphTag(Base):
     __tablename__ = 'graph_tag'
     tag_id = Column(String, primary_key = True) #id
 
+class TaskLayout(Base):
+    '''
+        Table of Task Layouts to specify how the graphs are viewed on GraphSpace.
+        User created layouts will be stored in this table.
+    '''
+    __tablename__ = 'task_layout'
+
+    # A descriptive name for the layout, provided by the owner_id when creating the i
+    # layout in GraphSpace.
+    layout_name = Column(String, nullable = False, primary_key = True)
+
+    # The id of the user who created the layout. The foreign key constraint ensures 
+    # this person is present in the 'user' table. Not that owner_id need not be the 
+    # same as user_id since (graph_id, user_id) uniquely identify the graph. 
+    # In other words, the owner_id can be the person other than the one who created 
+    # the graph (user_id). An implicit rule is that owner_id must belong to some 
+    # group that this graph belongs to. However, the database does not enforce this 
+    # constraint explicitly. 
+    owner_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = False, primary_key = True)
+    # id of the graph that the layout is for
+    graph_id = Column(String, nullable = False, primary_key = True)
+    # id of the user who owns the graph specified by graph_id
+    user_id = Column(String, nullable = False, primary_key = True)
+    # graph layout data in JSON format
+    json = Column(String, nullable = False)
+    # Is this layout submitted for review by the designer?
+    submitted = Column(Integer, nullable = True)
+
+    # Has layout been accepted by researcher?
+    accepted = Column(Integer, nullable = True)
+
+    # SQLAlchemy's way of creating a multi-column foreign key constraint.
+    __table_args__ = (ForeignKeyConstraint([graph_id, user_id], [Graph.graph_id, Graph.user_id], ondelete="CASCADE", onupdate="CASCADE"), {})
+
 class Layout(Base):
     '''
         Table of Layouts to specify how the graphs are viewed on GraphSpace.
@@ -178,6 +259,20 @@ class Layout(Base):
 
     # SQLAlchemy's way of creating a multi-column foreign key constraint.
     __table_args__ = (ForeignKeyConstraint([graph_id, user_id], [Graph.graph_id, Graph.user_id], ondelete="CASCADE", onupdate="CASCADE"), {})
+
+
+class TaskLayoutFeedback(Base):
+    '''The class respresenting the schema of the task_layout_feedback table.'''
+    __tablename__ = 'task_layout_feedback'
+    
+    id = Column(Integer, primary_key = True, autoincrement = True)
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"))
+    graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    layout_name = Column(String, nullable = False)
+    layout_owner = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = False)
+    notes = Column(Text, nullable = False)
+    created = Column(TIMESTAMP, nullable = False)
+    feedback_owner = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"))
 
 class Node(Base):
     '''

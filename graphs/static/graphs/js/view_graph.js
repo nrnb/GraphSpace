@@ -427,6 +427,59 @@ $(document).ready(function() {
         heightStyle: "content"
     });
 
+    $(".feedback").click(function(e) {
+      e.preventDefault();
+
+      var layout_name = $(this).val();
+      var layout_owner = $(this).attr("id");
+      var userId = $("#uid").text();
+      var graphId = $("#gid").text();
+      var loggedIn = $("#loggedIn").text();
+      console.log(layout_name+ ", " + layout_owner + ", " + userId + ", " + graphId + ", " + loggedIn);
+
+      $.post("../../../fetch_feedback/", {
+        "user_id": userId,
+        "graph_id": graphId,
+        "layout_name": layout_name,
+        "layout_owner": layout_owner
+      }, function (data) {
+        console.log(data);
+        var messages = data.Message.feedback;
+        $("#layout_feedback_list").html("");
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          $("#layout_feedback_list").append("<li>" + message[0] + " said: " + message[1]);
+        }
+      });
+
+      $("#feedback_model").modal('toggle');
+
+      $("#save_new_note").click(function (e) {
+        e.preventDefault();
+
+        var new_note = $("#feedback_note").val();
+
+        if (new_note.length == 0) {
+          return alert("Please enter some notes!");
+        }
+
+        $.post("../../../add_feedback_note/", {
+          "user_id": userId,
+          "graph_id": graphId,
+          "layout_name": layout_name,
+          "layout_owner": layout_owner,
+          "feedback_owner": loggedIn,
+          "note": new_note
+        }, function (data) {
+          if (data.StatusCode == 201) {
+            $("#feedback_note").val("");
+            $("#layout_feedback_list").append("<li>" + loggedIn + " said: " + new_note);
+          }
+        });
+      });
+    });
+
+
     //When save layout button is clicked
     $("#save_layout").click(function(e) {
       e.preventDefault();
@@ -1194,15 +1247,9 @@ function getLayoutFromQuery() {
       name: 'random',
       padding: 10,
       fit:true,
-      animate: false,
-      // maxSimulationTime: 1000
+      animate: false
     };
 
-    $("#auto").addClass('active');
-    $("#manual").removeClass('active');
-
-    $('#builtin').addClass('active');
-    $('#custom').removeClass('active');
 
     var query = getQueryVariable("layout");
 
@@ -1239,12 +1286,6 @@ function getLayoutFromQuery() {
         name: "grid"
       }
     } else {
-
-      $("#auto").removeClass('active');
-      $("#manual").addClass('active');
-
-      $('#builtin').removeClass('active');
-      $('#custom').addClass('active');
 
        if (layout && layout.json != null) {
         graph_layout = {
@@ -1308,6 +1349,50 @@ function colourNameToHex(colour)
     }
     return false;
 }
+
+/**
+ * Accepts a submitted layout for graph.
+ */
+ $(".accept").click(function() {
+    var gid = $("#gid").text();
+    var uid = $("#uid").text();
+    var layout_name = $(this).val();
+    var layout_owner = $(this).attr("id");
+
+    $.post("../../../toggleAcceptTaskLayout/", {
+      "gid":gid,
+      "uid":uid,
+      "layout_owner":layout_owner,
+      "layout_name":layout_name
+    }, function (data) {
+      if (data.Error) {
+        return alert(data.Error);
+      }
+      window.location.reload();
+    });
+ });
+
+ /**
+ * Rejects a submitted layout for graph.
+ */
+ $(".reject").click(function() {
+    var gid = $("#gid").text();
+    var uid = $("#uid").text();
+    var layout_name = $(this).val();
+    var layout_owner = $(this).attr("id");
+
+    $.post("../../../rejectTaskLayout/", {
+      "gid":gid,
+      "uid":uid,
+      "layout_owner":layout_owner,
+      "layout_name":layout_name
+    }, function (data) {
+      if (data.Error) {
+        return alert(data.Error);
+      }
+      window.location.reload();
+    });
+ });
 
 /**
 * Makes specific layout the default layout for a graph.

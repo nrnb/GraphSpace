@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load staticfiles %}
+
+	<div class="container graphs">
+
+		<!-- Confirm Delete of Task -->
+		<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModal" aria-hidden="true">
+	      <div class="modal-dialog">
+	        <div class="modal-content">
+	          <div class="modal-header">
+	            <h4 class="modal-title" id="deleteModal">Confirm Delete</h4>
+	          </div>
+	          <div class="modal-body">
+	                
+	            <form method="post" class="end_task1" role="form">
+	                <div class="delete_fields">
+	                   <h4>Are you sure you want to end this task?</h4>
+	                    <br />
+	                    <button type="button" name="end_task" id="end_task" class="btn btn-success">End Task</button>
+	                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+	                </div> 
+	            </form>  
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+
+		<!-- Contains Top nav pills for navigation -->
+		<div class="row">
+	        <div class="col-xs-6 col-sm-9">
+	            <div class="task_links">  
+	            	{% if view_type == 'my_tasks' %}
+						<a style='color:white' href="mine"><button class="btn btn-default">My Tasks<br>{{my_tasks}}</button></a>
+						<a style='color:white' href="available"><button class="btn btn-primary">Available Tasks<br>{{available_tasks}}</button></a>
+					{% else %}
+						<a style='color:white' href="mine"><button class="btn btn-primary">My Tasks<br>{{my_tasks}}</button></a>
+						<a style='color:white' href="available"><button class="btn btn-default">Available Tasks<br>{{available_tasks}}</button></a>
+					{% endif %}
+				</div>
+				<div class="pagination pagination-centered">
+					{% if tasks_list != None and tasks_list|length > 0%}
+                        {% if has_previous %}
+							<li><a href="?page={{ previous_page_number }}">&lt; Prev</a></li>
+						{% endif %}
+						{% for p in page_numbers %}
+							{% if p == current_page.number and p > 1%}
+	                           <li class='active'><a href="">{{ p }}</a></li>
+	                        {% elif p > 1 %}
+	                           <li><a href="">{{ p }}</a></li>
+							{% endif %}
+						{% endfor %}
+						{% if has_next %}
+                            <li><a href="">{{ p }}</a>Next &gt;</li> 
+                        {% endif %}
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		<!-- Table of My Tasks -->
+		<div class="row">
+		    <div class="col-sm-12">
+		    	{% if tasks_list != None and tasks_list|length > 0 %}
+		    		{% if current_page != None %}
+				        <div class="results_table">
+				        	<table class='table table-hover' style='table-layout:fixed;overflow:hidden;word-wrap:break-word;'>
+				        		<tr>
+		                     		<th>Graph ID</th>
+		                    		<th>Graph Owner</th>
+		                    		<th>Description</th>
+		                    		<th>Expires</th>
+		                    		<th>Number of Submissions</th>
+		                    		<th></th>
+		                		</tr>
+		          				{% for task in current_page %}
+		          					<tr>
+		          						<td><a href="{{url}}tasks/{{task.user_id}}/{{task.graph_id}}">{{task.graph_id}}</a></td>
+		          						<td>{{task.user_id}}</td>
+		          						<td>{{task.description}}</td>
+		          						<td>{{task.expires}}</td>
+		          						<td>{{task.submitted_layouts_count}}</td>
+		          						{% if uid == task.user_id %}
+		          							<td><button class="btn btn-default end_task" data-toggle="modal" data-target="#deleteModal" id="{{task.graph_id}}" value="{{task.user_id}}">End Task?</button></td>
+		          						{% else %}
+		          							<td></td>
+		          						{% endif %}
+	          						</tr>
+		          				{% endfor %}
+							</table>
+						</div>
+					{% endif %}
+				{% else %}
+					{% if view_type == 'my_tasks' %}
+						<p>You have not launched any tasks yet.</p>
+					{% else %}
+						<p>There are currenty no available tasks.  Please try again later.</p>
+					{% endif %}
+				{% endif %}
+			</div>
+
+		<!-- 	<div class="col-sm-3 side">
+				{% if page_numbers|length > 1 %}
+			        <div id="search_box_panel_accordion" class="panel-group" style="margin-top: -161px;">
+			    {% else %}
+			        <div id="search_box_panel_accordion" class="panel-group" style="margin-top: -70px;">
+			    {% endif %}
+	              <div id="search_box_panel" class="panel panel-default">
+	                <div class="panel-heading">
+	                  <h3 class="panel-title">Search<a id="help_search" href="../help/#search" style="float: right; color: #0000FF;">Help</a></h3>
+	                </div>
+	                <div class="panel-collapse collapse in" id="collapse_search_box">
+	                <div class="panel-body">
+	                  <form method="get" role="form">
+	                     <div class="input-group">
+	                        <input type="text" class="form-control" placeholder="Search..." id="searching">
+	                        <span class="input-group-btn">
+	                            <button class="btn btn-info" id="search_button" type="submit">Search</button>
+	                        </span>
+	                    </div>
+	                    <br>
+	                    <div class="input-group" id="search_radios">
+	                    <label>
+	                        <input type="radio" class="search_type" id="partial_search" name="match" value="partial_search" rel="tooltip" data-toggle="tooltip" title="Return all graphs that partially match the search term(s)"> Similar
+	                    </label>
+	                    <label>
+	                        <input type="radio" id="full_search" class="search_type" name="match" value="full_search" rel="tooltip" data-toggle="tooltip" title="Return all graphs that fully match the search term(s)"> Exact
+	                    </label>
+	                    </div>
+	                  </form>
+	                  <br>
+	                  <div style="text-align: center;">
+	                    <button class="btn btn-default" id="clear_search" style="width: 100%;">Clear all search terms</button>
+	                  </div>
+	                </div>
+	              </div>
+	            </div>
+	            </div>
+	            <br> <br>
+			   
+			</div> -->
+		</div>
+	<footer class="footer">
+		<br>Powered by <a href="https://www.djangoproject.com/">Django 1.7.6</a>
+		<br><a href = "http://js.cytoscape.org/">CytoscapeJS 2.4.0</a>
+	</footer>
+
+<script type="text/javascript" src="{% static 'graphs/js/task.js' %}"></script>
+
+<!-- load stylesheets -->
+<!-- jQuery UI style sheet -->
+<!-- <link rel="stylesheet" href="{% static 'graphs/css/jquery-ui.min.css' %}"> -->
+
+<!-- stylesheet for pager -->
+<!-- <link href="{% static 'graphs/css/pager.css' %}" rel="stylesheet"> -->
+
+<!-- stylesheet for elements specified in this html(graphs.html) -->
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'graphs/css/graphs.css' %}"> -->
+
+<!-- stylesheet for side menues -->
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'graphs/css/side_menu.css' %}"> -->
+
+{% endblock %}

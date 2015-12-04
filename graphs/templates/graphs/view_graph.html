@@ -8,6 +8,37 @@
 </script>
 <div id="dialog"></div>
 <!--#######################################-->
+<!-- Feedback Modal -->
+        <div class="modal fade" id="feedback_model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Layout Feedback</h4>
+              </div>
+              <div class="modal-body">
+
+                <form method="post" id="layout_form" class="layout_form" role="form">
+                    <div class="layout_fields">
+                        <div class="control-group">
+                            <label for="layout_feedback">Notes</label>
+                            <div id="layout_feedback"><ul id="layout_feedback_list"></ul></div>
+                        </div>
+                        <div class="control-group">
+                          <label for="feedback_note">New Note</label>
+                            <textarea id="feedback_note" class="form-control" rows="2"></textarea>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" id="save_new_note">Add New Note</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+                    </div> 
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
 <!-- Save Modal -->
 <div class="modal fade" id="layout_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -222,6 +253,7 @@
                         <a id='layout_link' href=""></a>
                         <li id="auto"><a href="#builtin" data-toggle="tab">Auto</a></li>
                         <li id="manual"><a href="#custom" data-toggle="tab">Manual</a></li>
+                        <li id="crowd"><a href="#design" data-toggle="tab">Designed</a></li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane" id="builtin">
@@ -371,6 +403,71 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="tab-pane" id="design">
+                            <br/>
+                            <div class="tabbable">
+                                <ul class="nav nav-pills">
+                                    <li id="accepted">
+                                        <a id="layouts_accepted" href="#layouts_accepted_pane" style="text-align: center;" data-toggle="tab">Accepted<br>{{accepted_layouts|length}}</a>
+                                    </li>
+                                    {% if owner == uid %}
+                                    <li id="submitted">
+                                        <a id="layouts_submitted" href="#layouts_submitted_pane" style="text-align: center;" data-toggle="tab">Submitted<br>{{submitted_layouts|length}}</a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                                <br/>
+                                <div class="tab-content">
+                                    <div class="tab-pane" id="layouts_accepted_pane">
+                                        {% for o in accepted_layouts %}
+                                        {% with layout_urls|add:o.layout_name|add:"&layout_owner="|add:o.owner_id  as url%}
+                                        {% if o.layout_name == layout_name and o.owner_id == layout_owner %}
+                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="{{url}}">
+                                        {% else %}
+                                        <a class="list-group-item layout_buttons" href="{{url}}">
+                                            {% endif %}
+                                            {{o.layout_name}} created by {{o.owner_id}}<br /><br />
+                                            {% if owner == uid %}
+                                            <button class="btn btn-default layout_links reject" id="{{o.owner_id}}" value="{{o.layout_name}}" rel="tooltip" data-toggle="tooltip" title="Reject Submitted Layout" style="float: left;">
+                                            <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
+                                            <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
+                                            </button>
+                                            {% endif %}
+                                            <div style="clear: both;"></div>
+                                        </a>
+                                        {% endwith %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="tab-pane" id="layouts_submitted_pane">
+                                        {% for o in submitted_layouts %}
+                                        {% with layout_urls|add:o.layout_name|add:"&layout_owner="|add:o.owner_id  as url%}
+                                        {% if o.layout_name == layout_name and o.owner_id == layout_owner %}
+                                        <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="{{url}}">
+                                        {% else %}
+                                        <a class="list-group-item layout_buttons" href="{{url}}">
+                                            {% endif %}
+                                            {{o.layout_name}} created by {{o.owner_id}}<br /><br />
+                                            {% if owner == uid %}
+                                            <button class="btn btn-default layout_links accept" id="{{o.owner_id}}" value="{{o.layout_name}}" rel="tooltip" data-toggle="tooltip" title="Accept Submitted Layout" style="float: left;">
+                                            <span class="glyphicon glyphicon-ok"></span>
+                                            </button>
+                                            <button class="btn btn-default layout_links reject" id="{{o.owner_id}}" value="{{o.layout_name}}" rel="tooltip" data-toggle="tooltip" title="Reject Submitted Layout" style="float: left;">
+                                            <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
+                                            <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
+                                            </button>
+                                            {% endif %}
+                                            {% endwith %}
+                                            <div style="clear: both;"></div>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -402,9 +499,17 @@
     </div>
     <!-- end class = side_menu -->
 </div>
+<script type="text/javascript">
+    $("#auto").addClass('active');
+    $('#builtin').addClass('active');
+
+    $("#manual").removeClass('active');
+    $('#custom').removeClass('active');
+</script>
 {% for layout in my_layouts %}
 {% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
 <script type="text/javascript">
+    $("#auto").removeClass("active");
     $("#builtin").removeClass("active");
     $("#manual").addClass('active');
     $('#custom').addClass('active');
@@ -416,11 +521,41 @@
 {% for layout in shared_layouts %}
 {% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
 <script type="text/javascript">
-    $("#builtin").removeClass("active");
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");    
     $("#manual").addClass('active');
     $('#custom').addClass('active');
     $("#shared").addClass('active');
     $("#shared_layouts_pane").addClass("active");
+</script>
+{% endif %}
+{% endfor %}
+{% for layout in accepted_layouts %}
+{% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
+<script type="text/javascript">
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");    
+    $("#manual").removeClass('active');
+    $("#custom").removeClass('active');
+    $("#crowd").addClass('active');
+    $("#design").addClass('active');
+    $("#accepted").addClass('active');
+    $("#layouts_accepted").addClass('active');
+    $("#layouts_accepted_pane").addClass("active");
+</script>
+{% endif %}
+{% endfor %}
+{% for layout in submitted_layouts %}
+{% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
+<script type="text/javascript">
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");        
+    $("#manual").removeClass('active');
+    $("#custom").removeClass('active');
+    $("#crowd").addClass('active');
+    $("#submitted").addClass('active');
+    $("#layouts_submitted").addClass('active');
+    $("#submitted_layouts_pane").addClass("active");
 </script>
 {% endif %}
 {% endfor %}
