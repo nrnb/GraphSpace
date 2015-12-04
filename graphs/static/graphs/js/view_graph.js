@@ -1344,7 +1344,7 @@ function colourNameToHex(colour)
     "wheat":"#f5deb3","white":"#ffffff","whitesmoke":"#f5f5f5",
     "yellow":"#ffff00","yellowgreen":"#9acd32"};
 
-    if (colour in Object.keys(colours)) {
+    if (colour in colours) {
       return colours[colour]
     }
     return false;

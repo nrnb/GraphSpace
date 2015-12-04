@@ -747,13 +747,9 @@ function extractJSONProperties(graphJson) {
 
     for (var index in valueArray) {
       var value = colourNameToHex(valueArray[index]);
+      console.log(value);
       if (key == "background_color") {
-        // if (value.lastIndexOf("#", 0) === 0) {//startsWith
           checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
-        // } else {
-          // value = colourNameToHex(value);
-          // checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
-        // }
       } else {
         checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value +'&nbsp;&nbsp;&nbsp;';
       }
@@ -933,9 +929,10 @@ function colourNameToHex(colour)
     "wheat":"#f5deb3","white":"#ffffff","whitesmoke":"#f5f5f5",
     "yellow":"#ffff00","yellowgreen":"#9acd32"};
 
-    if (colour in Object.keys(colours)) {
+    if (colour in colours) {
       return colours[colour]
     }
+
     return colour;
 }
 
