@@ -764,37 +764,7 @@ function extractJSONProperties(graphJson) {
   }
 };
 
-var modifiedColor
-$('#valueInput').bind("DOMSubtreeModified", function() {
-  modifiedColor = "#" + $(this).text();
-
-  for (var j = 0; j < window.cy.nodes().length; j++) {
-        var node = window.cy.nodes()[j];
-
-        if (node.selected()) {
-          node.style("background-color", modifiedColor);
-          node.style("border-color", modifiedColor);
-          node.style("text-outline-color", modifiedColor);
-        }
-  }
-
-});
-
-var modifiedShape
-$("#modifyShapeSelection").change(function (){
-    modifiedShape = $(this).val();
-
-      for (var j = 0; j < window.cy.nodes().length; j++) {
-            var node = window.cy.nodes()[j];
-
-            if (node.selected()) {
-              node.style("shape", modifiedShape);
-            }
-      }
-});
-
 var colorValues = []
-
 $('input:checkbox[name=colors]').click(function() {
   colorValues = $('input:checkbox[name=colors]:checked').map(function() {
     return "#" + this.id
@@ -805,7 +775,6 @@ $('input:checkbox[name=colors]').click(function() {
 });
 
 var shapeValues = []
-
 $('input:checkbox[name=shapes]').click(function() {
   shapeValues = $('input:checkbox[name=shapes]:checked').map(function() {
     return this.id
@@ -863,32 +832,65 @@ function combineSelections(selection1, selectionArray1, selection2, selectionArr
     }
 }
 
-$("#save_modified").click(function (e) {
+var modifiedColor
+$('#valueInput').bind("DOMSubtreeModified", function() {
+  modifiedColor = "#" + $(this).text();
+
+  for (var j = 0; j < window.cy.nodes().length; j++) {
+        var node = window.cy.nodes()[j];
+
+        if (node.selected()) {
+          node.style("background-color", modifiedColor);
+          node.style("border-color", modifiedColor);
+          node.style("text-outline-color", modifiedColor);
+        }
+  }
+
+});
+
+var modifiedShape
+$("#modifyShapeSelection").change(function (){
+    modifiedShape = $(this).val();
+
+    for (var j = 0; j < window.cy.nodes().length; j++) {
+          var node = window.cy.nodes()[j];
+
+          if (node.selected()) {
+            node.style("shape", modifiedShape);
+          }
+    }
+});
+
+$("#group").click(function (e) {
     e.preventDefault();
 
-    // //Replaces all spaces with '_' character for ease of saving
-    // var layoutName = $("#layout_name").val();
-    // if (layoutName && layoutName.length > 0) {
-    //   layoutName = layoutName.replace(" ", "_");
-    // }
-    // //When save is clicked, it gets location of all the nodes and saves it
-    // //so that nodes can be placed in this location later on
-    // var nodes = window.cy.elements('node');
-    // var layout = [];
-    // for (var i = 0; i < Object.keys(nodes).length - 2; i++) {
-    //    var nodeData = {
-    //     'x': nodes[i]._private.position.x,
-    //     'y': nodes[i]._private.position.y,
-    //     'id': nodes[i]._private.data.id,
-    //     'background_color': nodes[i]._private.data["background_color"],
-    //     'shape': nodes[i]._private.data["shape"],
+    var center = {x: window.cy.width()/2, y: window.cy.height()/2};
+    var sideLength = 100;
 
-    //    };
-    //    layout.push(nodeData);
-    // }
+    for (var j = 0; j < window.cy.nodes().length; j++) {
+          var node = window.cy.nodes()[j];
 
+          if (node.selected()) {
+            var position = node.renderedPosition();
 
+            if (position.x < (center.x - sideLength/2)) {
+              position.x += 10;
+              
+            }
+            if (position.x > (center.x + sideLength/2)) {
+              position.x -= 10;
+            }
 
+            if (position.y < (center.y - sideLength/2)) {
+              position.y += 10;
+            }
+            if (position.y > (center.y + sideLength/2)) {
+              position.y -= 10;
+            }
+
+            node.renderedPosition(position);
+          }
+    }
 });
 
 function intersect(a, b) {
