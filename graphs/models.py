@@ -64,6 +64,7 @@ class Event(Base):
     # 9 means submitted layout for task
     # 10 means rejected layout for task
     # 11 means unshared graph
+    # 12 means new feedback note
 
     event_type = Column(Integer, nullable = False)
     created = Column(TIMESTAMP, nullable = False)
@@ -72,7 +73,15 @@ class Event(Base):
     graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
     group_id = Column(String, ForeignKey('group.group_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
     group_owner = Column(String, ForeignKey('group.owner_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    layout_name = Column(String, nullable = True)
+    layout_owner = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
 
+class LastAccess(Base):
+    '''The class representing the schema of the last time user accessed notifications page.'''
+    __tablename__ = 'last_accessed'
+
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), primary_key = True)
+    accessed = Column(TIMESTAMP, nullable = False)
 
 class Task(Base):
     '''The class representing the schema of the task table.'''
@@ -250,6 +259,20 @@ class Layout(Base):
 
     # SQLAlchemy's way of creating a multi-column foreign key constraint.
     __table_args__ = (ForeignKeyConstraint([graph_id, user_id], [Graph.graph_id, Graph.user_id], ondelete="CASCADE", onupdate="CASCADE"), {})
+
+
+class TaskLayoutFeedback(Base):
+    '''The class respresenting the schema of the task_layout_feedback table.'''
+    __tablename__ = 'task_layout_feedback'
+    
+    id = Column(Integer, primary_key = True, autoincrement = True)
+    user_id = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"))
+    graph_id = Column(String, ForeignKey('graph.graph_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = True)
+    layout_name = Column(String, nullable = False)
+    layout_owner = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"), nullable = False)
+    notes = Column(Text, nullable = False)
+    created = Column(TIMESTAMP, nullable = False)
+    feedback_owner = Column(String, ForeignKey('user.user_id', ondelete="CASCADE", onupdate="CASCADE"))
 
 class Node(Base):
     '''

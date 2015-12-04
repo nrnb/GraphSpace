@@ -25,13 +25,50 @@
 
                 <form method="post" id="layout_form" class="layout_form" role="form">
                     <div class="layout_fields">
-                       <div class="control-group">
+                        <div class="control-group">
                             <label for="layout_name">Layout Name</label>
                             <input id="layout_name" class="form-control" type="text" name="layout_name" autocomplete="off"/>
                         </div>
                         <br>
+                        <div class="control-group">
+                            <label for="layout_note">Note about Layout</label>
+                            <textarea id="layout_note" class="form-control" rows="6"></textarea>
+                        </div>
+                        <br>
                         <div class="form-group">
                             <button name="save_layout" id="save_layout" class="btn btn-success">Save Layout</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+                    </div> 
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+<!-- Feedback Modal -->
+        <div class="modal fade" id="feedback_model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Layout Feedback</h4>
+              </div>
+              <div class="modal-body">
+
+                <form method="post" id="layout_form" class="layout_form" role="form">
+                    <div class="layout_fields">
+                        <div class="control-group">
+                            <label for="layout_feedback">Notes</label>
+                            <div id="layout_feedback"><ul id="layout_feedback_list"></ul></div>
+                        </div>
+                        <div class="control-group">
+                          <label for="feedback_note">New Note</label>
+                            <textarea id="feedback_note" class="form-control" rows="2"></textarea>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" id="save_new_note">Add New Note</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                         </div>
                     </div> 
@@ -103,10 +140,27 @@
                     <div class="tabbable">
                         <ul class="nav nav-tabs" id="layout-tabs">
                           <a id='layout_link' href=""></a>
+                          <li id="accept"><a href="#accepted" data-toggle="tab">Accepted</a></li>
                           <li id="auto"><a href="#builtin" data-toggle="tab">Submitted</a></li>
                           <li id="manual"><a href="#custom" data-toggle="tab">Mine</a></li>
                         </ul>
                         <div class="tab-content">
+                            <div class="tab-pane" id="accepted">
+                                <br/>
+                                <ul class="nav nav-pills">
+                                    {% for o in accepted_layouts %}
+                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}
+                                        {% if o.owner_id == logged_in %}
+                                            <br><br>
+                                            <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
+                                            </button>
+                                        {% endif %}
+                                        <div style="clear: both;"></div>
+                                        </a>
+                                    {% endfor %}
+                                </ul>  
+                            </div>
                             <div class="tab-pane" id="builtin">
                                 <br/>
                                 <ul class="nav nav-pills">
@@ -118,6 +172,10 @@
                                               <span class="glyphicon glyphicon glyphicon-minus-sign"></span>
                                             </button>
                                         {% endif %}
+                                        
+                                        <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                          <span class="glyphicon glyphicon-transfer"></span>
+                                        </button>
                                         <div style="clear: both;"></div>
                                         </a>
                                     {% endfor %}
@@ -145,6 +203,9 @@
                                         {% endif %}
                                         <button class="btn btn-default layout_links delete" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Delete Layout" value="{{o.layout_name}}" style="float: left;">
                                           <span class="glyphicon glyphicon-remove"></span>
+                                        </button>
+                                        <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                          <span class="glyphicon glyphicon-transfer"></span>
                                         </button>
                                         <div style="clear: both;"></div>
                                         </a>

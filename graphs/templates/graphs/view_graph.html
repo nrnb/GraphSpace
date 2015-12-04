@@ -8,6 +8,37 @@
 </script>
 <div id="dialog"></div>
 <!--#######################################-->
+<!-- Feedback Modal -->
+        <div class="modal fade" id="feedback_model" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Layout Feedback</h4>
+              </div>
+              <div class="modal-body">
+
+                <form method="post" id="layout_form" class="layout_form" role="form">
+                    <div class="layout_fields">
+                        <div class="control-group">
+                            <label for="layout_feedback">Notes</label>
+                            <div id="layout_feedback"><ul id="layout_feedback_list"></ul></div>
+                        </div>
+                        <div class="control-group">
+                          <label for="feedback_note">New Note</label>
+                            <textarea id="feedback_note" class="form-control" rows="2"></textarea>
+                        </div>
+                        <br>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" id="save_new_note">Add New Note</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+                    </div> 
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
 <!-- Save Modal -->
 <div class="modal fade" id="layout_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -324,7 +355,6 @@
                                             <button class="btn btn-default layout_links removeDefault" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Remove as default layout" value="{{o.layout_name}}" style="float: left;">
                                             <span class="glyphicon glyphicon-bookmark"></span>
                                             </button>
-<<<<<<< HEAD
                                             {% endif %}
                                             {% endif %}
                                             <div style="clear: both;"></div>
@@ -401,6 +431,9 @@
                                             <button class="btn btn-default layout_links reject" id="{{o.owner_id}}" value="{{o.layout_name}}" rel="tooltip" data-toggle="tooltip" title="Reject Submitted Layout" style="float: left;">
                                             <span class="glyphicon glyphicon-remove"></span>
                                             </button>
+                                            <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
+                                            </button>
                                             {% endif %}
                                             <div style="clear: both;"></div>
                                         </a>
@@ -422,6 +455,9 @@
                                             </button>
                                             <button class="btn btn-default layout_links reject" id="{{o.owner_id}}" value="{{o.layout_name}}" rel="tooltip" data-toggle="tooltip" title="Reject Submitted Layout" style="float: left;">
                                             <span class="glyphicon glyphicon-remove"></span>
+                                            </button>
+                                            <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
+                                              <span class="glyphicon glyphicon-transfer"></span>
                                             </button>
                                             {% endif %}
                                             {% endwith %}

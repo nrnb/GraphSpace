@@ -419,6 +419,7 @@ $(document).ready(function() {
         }
 
         layout = JSON.stringify(layout);
+        var feedback = $("#layout_note").val();
 
         //Post information about layout to GraphSpace
         $.post("../../save_task_layout_through_ui/", {
@@ -426,7 +427,8 @@ $(document).ready(function() {
           "graph_id": graphId,
           "layout_name": layoutName,
           "layout_owner": loggedIn,
-          "layout": layout
+          "layout": layout,
+          "feedback": feedback
         }, function( data ) {
           if (data.StatusCode == 201) {
             window.location.href = $("#taskURL").text() + "?layout=" + layoutName + "&layout_owner=" + loggedIn
@@ -436,6 +438,55 @@ $(document).ready(function() {
         });
     });
 
+    $(".feedback").click(function(e) {
+      e.preventDefault();
+
+      var layout_name = $(this).val();
+      var layout_owner = $(this).attr("id");
+      var userId = $("#userId").text();
+      var graphId = $("#graphId").text();
+      var loggedIn = $("#loggedIn").text();
+
+      $.post("../../fetch_feedback/", {
+        "user_id": userId,
+        "graph_id": graphId,
+        "layout_name": layout_name,
+        "layout_owner": layout_owner
+      }, function (data) {
+        var messages = data.Message.feedback;
+        $("#layout_feedback_list").html("");
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          $("#layout_feedback_list").append("<li>" + message[0] + " said: " + message[1]);
+        }
+      });
+
+      $("#feedback_model").modal('toggle');
+
+      $("#save_new_note").click(function (e) {
+        e.preventDefault();
+
+        var new_note = $("#feedback_note").val();
+
+        if (new_note.length == 0) {
+          return alert("Please enter some notes!");
+        }
+
+        $.post("../../add_feedback_note/", {
+          "user_id": userId,
+          "graph_id": graphId,
+          "layout_name": layout_name,
+          "layout_owner": layout_owner,
+          "feedback_owner": loggedIn,
+          "note": new_note
+        }, function (data) {
+          if (data.StatusCode == 201) {
+            $("#feedback_note").val("");
+            $("#layout_feedback_list").append("<li>" + loggedIn + " said: " + new_note);
+          }
+        });
+      });
+    });
 
     function getLayoutFromQuery() {
 
