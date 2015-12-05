@@ -783,8 +783,7 @@ function extractJSONProperties(graphJson) {
   } else {
     layoutPropertyDictionary = nodePropertyDictionary;
   }
-//http://localhost:8000/tasks/test@test.com/test?layout=diamonds&layout_owner=test@test.com
-//http://localhost:8000/tasks/test@test.com/test?layout_owner=test@test.com&layout_name=diamonds
+
   //Go through and display all the different properties in template
   for (var key in layoutPropertyDictionary) {
     var subtitle = "";
@@ -793,7 +792,7 @@ function extractJSONProperties(graphJson) {
     } else {
       subtitle = "Shape";
     }
-    $("#selection").append("<p style='text-align: left;'>" + subtitle + "</p>");
+    $("#selection").append("<p style='text-align: left; font-weight: bold;'>" + subtitle + "</p>");
     var valueArray = layoutPropertyDictionary[key];
     var checkboxString = "<p style='text-align: left;'>";
 
@@ -803,6 +802,9 @@ function extractJSONProperties(graphJson) {
           checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
       } else {
         checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value[0].toUpperCase() + value.slice(1) +'&nbsp;&nbsp;&nbsp;';
+      }
+      if ((index+1) % 3 == 0) {
+        checkboxString+="<br><br>";
       }
     }
     checkboxString += "</p>";
