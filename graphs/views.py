@@ -133,6 +133,7 @@ def view_notifications(request):
 
     context["last_access"] = db.get_last_access_time_for_user(uid)
     context["notifications"] = db.get_notifications_for_user(uid, save_access_time=True)
+    context["URL"] = URL_PATH
 
     # If there are a lot of tasks, having paging
     if context['notifications'] != None:

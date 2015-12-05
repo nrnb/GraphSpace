@@ -7,6 +7,7 @@
 
 <div class="container graphs">
 	<h1 style="text-align: center;">Notifications</h1>
+	<p id="url" style="display: none;">{{URL}}</p>
 	<div class="row">
 	    <div class="col-sm-12">
 	    	{% if notifications != None and notifications|length > 0 %}
@@ -19,12 +20,12 @@
 	                		</tr>
 	          				{% for notification in current_page %}
 	          					{% if notification.created >= last_access.accessed %}
-	          					<tr style="color: red;">
+	          					<tr style="color: red;" event_type="{{notification.event_type}}" graph_id="{{notification.graph_id}}" user_id="{{notification.user_id}}" group_id="{{notification.group_id}}" group_owner = "{{notification.group_owner}}" layout_name="{{notification.layout_name}}" layout_owner = "{{notification.layout_owner}}">
 	          						<td><b>{{notification.created}}</b></td>
 	          						<td><b>{{notification.description}}</b></td>
           						</tr>
           						{% else %}
-          						<tr>
+	          					<tr event_type="{{notification.event_type}}" graph_id="{{notification.graph_id}}" user_id="{{notification.user_id}}" group_id="{{notification.group_id}}" group_owner = "{{notification.group_owner}}" layout_name="{{notification.layout_name}}" layout_owner = "{{notification.layout_owner}}">
 	          						<td>{{notification.created}}</td>
 	          						<td>{{notification.description}}</td>
           						</tr>
@@ -39,4 +40,7 @@
 		</div>
 	</div>
 </div>
+
+<script type="text/javascript" src="{% static 'graphs/js/notifications.js' %}"></script>
+
 {% endblock %}
