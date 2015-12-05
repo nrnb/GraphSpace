@@ -783,7 +783,8 @@ function extractJSONProperties(graphJson) {
   } else {
     layoutPropertyDictionary = nodePropertyDictionary;
   }
-
+//http://localhost:8000/tasks/test@test.com/test?layout=diamonds&layout_owner=test@test.com
+//http://localhost:8000/tasks/test@test.com/test?layout_owner=test@test.com&layout_name=diamonds
   //Go through and display all the different properties in template
   for (var key in layoutPropertyDictionary) {
     var subtitle = "";
