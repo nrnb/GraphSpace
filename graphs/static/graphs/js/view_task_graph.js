@@ -372,8 +372,9 @@ $(document).ready(function() {
 
     $('#accordion_design').accordion({
         collapsible: true,
-        active: false ,
-        heightStyle: "content"
+        heightStyle: "content",
+        autoHeight: false,
+        clearStyle: true,
     });
 
     $("#accordion_information").accordion({
@@ -745,11 +746,54 @@ function extractJSONProperties(graphJson) {
       }
     }
   }
+  
+  var layoutPropertyDictionary = {}
+  if (layout) {
+    var parsed_json = JSON.parse(layout.json);
+    for (var i in parsed_json) {
+      var node_obj = parsed_json[i];
+      
+      var colorKey = "background_color";
+      var shapeKey = "shape"
+
+      if (node_obj.hasOwnProperty(colorKey)) {
+        if (layoutPropertyDictionary.hasOwnProperty(colorKey)) {
+          var curArray = layoutPropertyDictionary[colorKey];
+          if (curArray.indexOf(node_obj[colorKey]) == -1) {
+            curArray.push(node_obj[colorKey]);
+            layoutPropertyDictionary[colorKey] = curArray;
+          }
+        } else {
+          layoutPropertyDictionary[colorKey] = [node_obj[colorKey]];
+        }
+      }
+
+      if (node_obj.hasOwnProperty(shapeKey)) {
+        if (layoutPropertyDictionary.hasOwnProperty(shapeKey)) {
+          var curArray = layoutPropertyDictionary[shapeKey];
+          if (curArray.indexOf(node_obj[shapeKey]) == -1) {
+            curArray.push(node_obj[shapeKey]);
+            layoutPropertyDictionary[shapeKey] = curArray;
+          }
+        } else {
+          layoutPropertyDictionary[shapeKey] = [node_obj[shapeKey]];
+        }
+      }
+    }
+  } else {
+    layoutPropertyDictionary = nodePropertyDictionary;
+  }
 
   //Go through and display all the different properties in template
-  for (var key in nodePropertyDictionary) {
-    $("#selection").append("<p style='text-align: left;'>" + key + "</p>");
-    var valueArray = nodePropertyDictionary[key];
+  for (var key in layoutPropertyDictionary) {
+    var subtitle = "";
+    if (key == "background_color") {
+      subtitle = "Background Color";
+    } else {
+      subtitle = "Shape";
+    }
+    $("#selection").append("<p style='text-align: left;'>" + subtitle + "</p>");
+    var valueArray = layoutPropertyDictionary[key];
     var checkboxString = "<p style='text-align: left;'>";
 
     for (var index in valueArray) {
@@ -757,7 +801,7 @@ function extractJSONProperties(graphJson) {
       if (key == "background_color") {
           checkboxString += '<input id="'+value.substring(1)+'" type="checkbox" name="colors">&nbsp;<canvas class="canvas" id="'+value.substring(1)+'" width="20" height="20"></canvas>&nbsp;&nbsp;&nbsp;';
       } else {
-        checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value +'&nbsp;&nbsp;&nbsp;';
+        checkboxString += '<input id="'+value+'" type="checkbox" name="shapes">&nbsp;'+ value[0].toUpperCase() + value.slice(1) +'&nbsp;&nbsp;&nbsp;';
       }
     }
     checkboxString += "</p>";
