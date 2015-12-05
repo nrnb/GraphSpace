@@ -157,6 +157,7 @@ $(document).ready(function() {
 		}, function(data) {
 			if (data.Message > 0) {
 				$("#notifications").html(" (" + data.Message + ")");
+				$("#notifications").css("color", "red");
 			}
 		});
 	}

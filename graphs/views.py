@@ -109,7 +109,7 @@ def get_notification_count(request):
     if request.POST:
         uid = request.POST["uid"]
 
-        notifications = db.get_notifications_for_user(uid)
+        notifications = db.get_new_notifications_for_user(uid)
 
         return HttpResponse(json.dumps(db.sendMessage(200, len(notifications)), indent=4, separators=(',', ': ')), content_type="application/json")
     else:
@@ -131,6 +131,7 @@ def view_notifications(request):
         context['Error'] = "Please create an account or log in to GraphSpace to view notifications!"
         return render(request, 'graphs/error.html', context)
 
+    context["last_access"] = db.get_last_access_time_for_user(uid)
     context["notifications"] = db.get_notifications_for_user(uid, save_access_time=True)
 
     # If there are a lot of tasks, having paging

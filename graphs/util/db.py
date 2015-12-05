@@ -242,7 +242,81 @@ def create_event(db_session, event_type, created, description, user_id, graph_id
     db_session.add(new_event)
     db_session.commit()
 
+def get_last_access_time_for_user(uid):
+
+	# Get database connection 
+	db_session = data_connection.new_session()
+
+	last_access_time = db_session.query(models.LastAccess).filter(models.LastAccess.user_id == uid).first()
+
+	db_session.close()
+
+	return last_access_time
+
 def get_notifications_for_user(uid, save_access_time=None):
+	'''
+		Retrieves all notifications related to the current user of GraphSpace.
+
+		@param uid: Logged in user
+	'''
+
+	events = []
+
+	# Get database connection 
+	db_session = data_connection.new_session()
+
+	access_time = datetime.now()
+
+	last_access_time = db_session.query(models.LastAccess).filter(models.LastAccess.user_id == uid).first()
+
+	try:
+
+		if last_access_time != None:
+			# Get all notifications that user has done since last time they accessed notifications page
+			events += db_session.query(models.Event).filter(models.Event.user_id == uid).all()
+			events += db_session.query(models.Event).filter(models.Event.layout_owner == uid).all()
+		else:
+			# Get all notifications that user has done without time limit
+			events += db_session.query(models.Event).filter(models.Event.user_id == uid).all()
+			events += db_session.query(models.Event).filter(models.Event.layout_owner == uid).all()
+
+	except NoResultFound:
+		"No events by the user."
+
+	try:
+		if last_access_time != None:
+			user_groups = get_all_groups_with_member(uid) + db_session.query(models.Group).filter(models.Group.owner_id == uid).all()
+
+			for group in user_groups:
+				events += db_session.query(models.Event).filter(models.Event.group_id == group.group_id).filter(models.Event.group_owner == group.owner_id).all()
+
+		else:
+			# Get all events that may be related to a group that the user is a part of
+			user_groups = get_all_groups_with_member(uid) + db_session.query(models.Group).filter(models.Group.owner_id == uid).all()
+
+			for group in user_groups:
+				events += db_session.query(models.Event).filter(models.Event.group_id == group.group_id).filter(models.Event.group_owner == group.owner_id).all()
+
+	except NoResultFound:
+		"No graphs shared with user have any new events"
+
+	if save_access_time:
+		if last_access_time != None:
+			db_session.delete(last_access_time)
+
+		new_access_time = models.LastAccess(user_id = uid, accessed = access_time)
+		db_session.add(new_access_time)
+		db_session.commit()
+
+	events = f7(events)
+	return list(reversed(events))
+
+def f7(seq):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
+
+def get_new_notifications_for_user(uid, save_access_time=None):
 	'''
 		Retrieves all notifications related to the current user of GraphSpace.
 
@@ -296,7 +370,8 @@ def get_notifications_for_user(uid, save_access_time=None):
 		new_access_time = models.LastAccess(user_id = uid, accessed = access_time)
 		db_session.add(new_access_time)
 		db_session.commit()
-
+		
+	events = f7(events)
 	return list(reversed(events))
 
 def get_available_tasks():

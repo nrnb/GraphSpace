@@ -435,20 +435,22 @@ $(document).ready(function() {
       var userId = $("#uid").text();
       var graphId = $("#gid").text();
       var loggedIn = $("#loggedIn").text();
-      console.log(layout_name+ ", " + layout_owner + ", " + userId + ", " + graphId + ", " + loggedIn);
 
-      $.post("../../../fetch_feedback/", {
+      $.post("../../fetch_feedback/", {
         "user_id": userId,
         "graph_id": graphId,
         "layout_name": layout_name,
         "layout_owner": layout_owner
       }, function (data) {
-        console.log(data);
         var messages = data.Message.feedback;
-        $("#layout_feedback_list").html("");
+        $("#layout_feedback").html("");
         for (var i = 0; i < messages.length; i++) {
           var message = messages[i];
-          $("#layout_feedback_list").append("<li>" + message[0] + " said: " + message[1]);
+          if (message[0] == loggedIn) {
+            $("#layout_feedback").append("<div class='mess'><div class='me'>" + message[0] + " said: " + message[1] + "</div></div><br>");
+          } else {
+            $("#layout_feedback").append("<div class='mess'><div class='other'>" + message[0] + " said: " + message[1] + "</div></div><br>");
+          }
         }
       });
 
@@ -463,7 +465,7 @@ $(document).ready(function() {
           return alert("Please enter some notes!");
         }
 
-        $.post("../../../add_feedback_note/", {
+        $.post("../../add_feedback_note/", {
           "user_id": userId,
           "graph_id": graphId,
           "layout_name": layout_name,
@@ -473,7 +475,7 @@ $(document).ready(function() {
         }, function (data) {
           if (data.StatusCode == 201) {
             $("#feedback_note").val("");
-            $("#layout_feedback_list").append("<li>" + loggedIn + " said: " + new_note);
+            $("#layout_feedback").append("<div class='mess'><div class='me'>" + loggedIn + " said: " + new_note + "</div></div><br>");
           }
         });
       });
