@@ -428,7 +428,7 @@ def get_all_layouts_for_task_for_user(graph_owner, graph_id, layout_owner):
 	db_session = data_connection.new_session()
 
 	try:
-		my_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.owner_id == layout_owner).filter(models.TaskLayout.accepted == None).all()
+		my_layouts = db_session.query(models.TaskLayout).filter(models.TaskLayout.graph_id == graph_id).filter(models.TaskLayout.user_id == graph_owner).filter(models.TaskLayout.owner_id == layout_owner).filter(models.TaskLayout.submitted == None).all()
 		db_session.close()
 		return my_layouts
 	except NoResultFound:
@@ -1042,6 +1042,8 @@ def set_task_layout_context(request, context, uid, gid):
 			    	context['Error'] = "Layout: " + request.GET.get('layout') + " either does not exist or " + uid + " has not shared this layout yet.  Click <a href='" + URL_PATH + "graphs/" + uid + "/" + gid + "'>here</a> to view this graph without the specified layout."
                 else:
 					# Return layout JSON
+	                context['layout_name'] = task_layout.layout_name
+	                context["layout_owner"] = request.GET.get('layout_owner')
 	                layout_to_view = json.dumps({"json": cytoscapePresetLayout(json.loads(task_layout.json))})
 
 	else:

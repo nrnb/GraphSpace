@@ -96,45 +96,7 @@
                 </div>
             </div>
         </div>
-    	<div id="accordion_design" class="accordion">
-            <h3>Design Graph<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
-            <div class="accordion_content test" id="design_accordian">
-              <hr>
-              <h3>Selection</h3>
-              <div style="text-align: center;" id="selection" class="input-group">
-              </div>
-              <hr>
-              <h3>Modify</h3>
-              <div style="text-align: center;" id="modify" class="input-group">
-                <p style='text-align: left;'>Modify Color:
-                <button
-                    class="jscolor {valueElement:'valueInput',value:'66ccff'}"
-                    style="width:50px; height:20px; border-style: none;"><div hidden id="valueInput"></div></button></p>
-                    
-                <p id="modifyShape" style='text-align: left;'>Modify Shape:
-                <select id="modifyShapeSelection">
-                  <option value="rectangle">Rectangle</option>
-                  <option value="roundrectangle">Round Rectangle</option>
-                  <option value="ellipse">Ellipse</option>
-                  <option value="triangle">Triangle</option>
-                  <option value="pentagon">Pentagon</option>
-                  <option value="hexagon">Hexagon</option>
-                  <option value="heptagon">Heptagon</option>
-                  <option value="octagon">Octagon</option>
-                  <option value="star">Star</option>
-                  <option value="diamond">Diamond</option>
-                  <option value="vee">Vee</option>
-                  <option value="rhomboid">Rhomboid</option>
-                </select>
-              </p>
-              </div>
-              <hr>
-              <h3>Move</h3>
-              <button class="btn btn-primary" id="group" style="display: block; margin: 0 auto;">Group Selected Nodes</button>
-              <hr>
-            </div>
-        </div>
-
+    	
        <div id="accordion_layouts" class="accordion">
             <h3>Layouts<a class="help" href="../../../help/#layout_panel" style="float: right; color: #0000FF;">Help</a></h3>
             <div class="accordion_content">
@@ -157,7 +119,11 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in accepted_layouts %}
-                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}
+                                        {% if o.layout_name == layout_name and o.owner_id == layout_owner %}
+                                          <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                        {% else %}
+                                           <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}
+                                         {% endif %}
                                         {% if o.owner_id == logged_in %}
                                             <br><br>
                                             <button class="btn btn-default layout_links feedback" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="View Feedback" value="{{o.layout_name}}" style="float: left;">
@@ -173,7 +139,11 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in submitted_layouts %}
-                                        <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}
+                                        {% if o.layout_name == layout_name and o.owner_id == layout_owner %}
+                                          <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                        {% else %}
+                                           <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} by: {{o.owner_id}}
+                                        {% endif %}
                                         {% if o.owner_id == logged_in %}
                                             <br><br>
                                             <button class="btn btn-default layout_links submit" id="{{o.owner_id}}" rel="tooltip" data-toggle="tooltip" title="Unsubmit Layout" value="{{o.layout_name}}" style="float: left;">
@@ -198,10 +168,14 @@
                                 <br/>
                                 <ul class="nav nav-pills">
                                     {% for o in my_layouts %}
-                                        {% if o.submitted == 1 %}
-                                            <a class="list-group-item layout_buttons" style="background-color: grey; color: white;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                        {% if o.layout_name == layout_name and o.owner_id == layout_owner %}
+                                          <a class="list-group-item layout_buttons" style="color: #fff; background-color: #428bca;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
                                         {% else %}
-                                            <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                            {% if o.submitted == 1 %}
+                                                <a class="list-group-item layout_buttons" style="background-color: grey; color: white;" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                            {% else %}
+                                                <a class="list-group-item layout_buttons" href="?layout={{o.layout_name}}&layout_owner={{o.owner_id}}">{{o.layout_name}} created by {{o.owner_id}}
+                                            {% endif %}
                                         {% endif %}
                                         <br><br>
 
@@ -230,6 +204,45 @@
                 </div>
             </div>
 
+
+            <div id="accordion_design" class="accordion">
+              <h3>Design Graph<a class="help" href="../../../help/#manipulate_panel" style="float: right; color: #0000FF;">Help</a></h3>
+              <div class="accordion_content test" id="design_accordian">
+                <hr>
+                <h3>Selection</h3>
+                <div style="text-align: center;" id="selection" class="input-group">
+                </div>
+                <hr>
+                <h3>Modify</h3>
+                <div style="text-align: center;" id="modify" class="input-group">
+                  <p style='text-align: left;'>Modify Color:
+                  <button
+                      class="jscolor {valueElement:'valueInput',value:'66ccff'}"
+                      style="width:50px; height:20px; border-style: none;"><div hidden id="valueInput"></div></button></p>
+                      
+                  <p id="modifyShape" style='text-align: left;'>Modify Shape:
+                  <select id="modifyShapeSelection">
+                    <option value="rectangle">Rectangle</option>
+                    <option value="roundrectangle">Round Rectangle</option>
+                    <option value="ellipse">Ellipse</option>
+                    <option value="triangle">Triangle</option>
+                    <option value="pentagon">Pentagon</option>
+                    <option value="hexagon">Hexagon</option>
+                    <option value="heptagon">Heptagon</option>
+                    <option value="octagon">Octagon</option>
+                    <option value="star">Star</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="vee">Vee</option>
+                    <option value="rhomboid">Rhomboid</option>
+                  </select>
+                </p>
+                </div>
+                <hr>
+                <h3>Move</h3>
+                <button class="btn btn-primary" id="group" style="display: block; margin: 0 auto;">Group Selected Nodes</button>
+                <hr>
+              </div>
+            </div>
         </div>
 
 <script type="text/javascript" src="{% static 'graphs/js/base.js' %}"></script> 
@@ -264,5 +277,43 @@
 <!-- stylesheet for side menus -->
 <link rel="stylesheet" type="text/css" href="{% static 'graphs/css/side_menu.css' %}">
 
+<script type="text/javascript">
+    $("#auto").addClass('active');
+    $('#builtin').addClass('active');
+
+    $("#manual").removeClass('active');
+    $('#custom').removeClass('active');
+</script>
+{% for layout in my_layouts %}
+{% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
+<script type="text/javascript">
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");
+    
+    $('#manual').addClass('active');
+    $('#custom').addClass('active');
+</script>
+{% endif %}
+{% endfor %}
+{% for layout in submitted_layouts %}
+{% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
+<script type="text/javascript">
+    $("#auto").addClass("active");
+    $("#builtin").addClass("active");
+</script>
+{% endif %}
+{% endfor %}
+
+{% for layout in accepted_layouts %}
+{% if layout.owner_id == layout_owner and layout.layout_name == layout_name %}
+<script type="text/javascript">
+    $("#auto").removeClass("active");
+    $("#builtin").removeClass("active");
+
+    $("#accept").addClass("active");
+    $("#accepted").addClass("active")
+</script>
+{% endif %}
+{% endfor %}
 
 {% endblock %}

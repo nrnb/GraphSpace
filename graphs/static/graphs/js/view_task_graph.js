@@ -1,17 +1,5 @@
 $(document).ready(function() {
 
-  function test() {
-         for (var i = 0; i < window.cy.elements('node').length; i++) {
-          var testNode = window.cy.elements('node')[i];
-
-          if (testNode.selected() && testNode.isNode()) {
-            testNode.style("background-color", "#FFFFFF");
-            testNode.style("text-outline-color", "#FFFFFF");
-            testNode.style("border-color", "#FFFFFF");
-
-          }
-         }
-        };
   extractJSONProperties(graph_json.graph);
 
 //Renders the cytoscape element on the page
@@ -353,20 +341,6 @@ $(document).ready(function() {
       }
     });
 
-    $("#auto").addClass('active');
-    $("#manual").removeClass('active');
-
-    $('#builtin').addClass('active');
-    $('#custom').removeClass('active');
-
-    $("#manual").on('click', function(e) {
-      $("#auto").removeClass('active');
-      $("#manual").addClass('active');
-
-      $('#builtin').removeClass('active');
-      $('#custom').addClass('active');
-    });
-
     //Allow a user to select multiple elements by dragging cursor across
     cy.boxSelectionEnabled(true);
 
@@ -375,17 +349,18 @@ $(document).ready(function() {
         heightStyle: "content",
         autoHeight: false,
         clearStyle: true,
+        active: 0
     });
 
     $("#accordion_information").accordion({
         collapsible: true,
-        active: false ,
+        active: 0 ,
         heightStyle: "content"
     });
 
     $("#accordion_layouts").accordion({
         collapsible: true,
-        active: true ,
+        active: 0 ,
         heightStyle: "content"
     });
 
@@ -426,7 +401,7 @@ $(document).ready(function() {
         var feedback = $("#layout_note").val();
 
         //Post information about layout to GraphSpace
-        $.post("../../save_task_layout_through_ui/", {
+        $.post("../../../save_task_layout_through_ui/", {
           "user_id": userId,
           "graph_id": graphId,
           "layout_name": layoutName,
@@ -508,12 +483,6 @@ $(document).ready(function() {
       animate: false,
       // maxSimulationTime: 1000
     };
-
-    $("#auto").addClass('active');
-    $("#manual").removeClass('active');
-
-    $('#builtin').addClass('active');
-    $('#custom').removeClass('active');
 
     var query = getQueryVariable("layout");
 
@@ -597,12 +566,6 @@ $(document).ready(function() {
       }
     } else {
 
-      $("#auto").removeClass('active');
-      $("#manual").addClass('active');
-
-      $('#builtin').removeClass('active');
-      $('#custom').addClass('active');
-
        if (layout && layout.json != null) {
         graph_layout = {
           name: 'preset',
@@ -617,7 +580,6 @@ $(document).ready(function() {
     }
     return graph_layout;
 }
-
 
 function applyLayoutStyles() {
   if (layout) {
@@ -649,7 +611,7 @@ function applyLayoutStyles() {
     var graphId = $("#graphId").text();
     var loggedIn = $("#loggedIn").text();
 
-    $.post("../../submitTaskLayout/", {
+    $.post("../../../submitTaskLayout/", {
       "layout_owner": layout_owner,
       "layout_name": layout_name,
       "user_id": userId,
@@ -675,7 +637,7 @@ $(".delete").click(function(e) {
   var userId = $("#userId").text();
   var graphId = $("#graphId").text();
 
-  $.post("../../deleteTaskLayout/", {
+  $.post("../../../deleteTaskLayout/", {
     "layout_owner": layout_owner,
     "layout_name": layout_name,
     "user_id": userId,

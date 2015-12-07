@@ -305,6 +305,7 @@ $(document).ready(function() {
         console.log('working');
       }, function() {
         console.log('done');
+        applyLayoutStyles();
       });
 
       // enable user panning (hold the left mouse button to drag
@@ -920,6 +921,24 @@ function export_graph(graphname) {
     download.href = png;
     download.download = graphname + ".png";
     fireEvent(download, 'click')
+}
+
+function applyLayoutStyles() {
+  if (layout) {
+
+    parsed_json = JSON.parse(layout.json);
+      for (var i in parsed_json) {
+        node_obj = parsed_json[i];
+        
+        if (node_obj.hasOwnProperty("background_color")) {
+          window.cy.$('[id="' + i + '"]').css('background-color', node_obj["background_color"]);
+        }
+
+        if (node_obj.hasOwnProperty("shape")) {
+          window.cy.$('[id="' + i + '"]').css('shape', node_obj["shape"]);
+        }
+      }
+  }
 }
 
 //This is needed to launch events in Mozilla browser
