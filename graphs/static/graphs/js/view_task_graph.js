@@ -572,10 +572,10 @@ $(document).ready(function() {
           positions: JSON.parse(layout.json)
         };
       } else if (query) {
-          // alert("Layout does not exist or has not been shared yet!");
-          // var loc = window.location.href;
-          // var baseLoc = loc.substring(0, loc.indexOf("?"));
-          // window.location.href = baseLoc;
+          alert("Layout does not exist or has not been shared yet!");
+          var loc = window.location.href;
+          var baseLoc = loc.substring(0, loc.indexOf("?"));
+          window.location.href = baseLoc;
       }
     }
     return graph_layout;
