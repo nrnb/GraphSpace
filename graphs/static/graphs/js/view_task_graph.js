@@ -2,7 +2,7 @@ $(document).ready(function() {
 
   extractJSONProperties(graph_json.graph);
 
-//Renders the cytoscape element on the page
+  //Renders the cytoscape element on the page
     //with the given options
     window.cy = cytoscape({
       container: $('#csjs')[0],
@@ -251,6 +251,7 @@ $(document).ready(function() {
   	      }, function() {
   	        console.log('done');
             applyLayoutStyles();
+            revealChatOnLoad();
   	    });
 
 	    // enable user panning (hold the left mouse button to drag
@@ -426,6 +427,10 @@ $(document).ready(function() {
       var graphId = $("#graphId").text();
       var loggedIn = $("#loggedIn").text();
 
+      fetchChatData(layout_name, layout_owner, userId, graphId, loggedIn);
+    });
+
+    function fetchChatData(layout_name, layout_owner, userId, graphId, loggedIn) {
       $.post("../../fetch_feedback/", {
         "user_id": userId,
         "graph_id": graphId,
@@ -469,7 +474,7 @@ $(document).ready(function() {
           }
         });
       });
-    });
+    }
 
     function getLayoutFromQuery() {
 
@@ -951,6 +956,18 @@ function colourNameToHex(colour)
     }
 
     return colour;
+}
+
+function revealChatOnLoad() {
+  var layout_name = getQueryVariable("layout");
+  var layout_owner = getQueryVariable("layout_owner");
+  if (getQueryVariable("showChat") && layout && layout_owner) {
+      var userId = $("#userId").text();
+      var graphId = $("#graphId").text();
+      var loggedIn = $("#loggedIn").text();
+
+      fetchChatData(layout_name, layout_owner, userId, graphId, loggedIn);
+  }
 }
 
 

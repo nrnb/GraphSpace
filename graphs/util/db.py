@@ -4019,7 +4019,7 @@ def save_layout(graph_id, graph_owner, layout_name, layout_owner, json, public, 
 
 
 	# Add to event table
-	create_event(db_session, 3, datetime.now(), layout_owner + " created new layout: " + layout_name + " for graph: " + graph_id + " owned by " + graph_owner, graph_owner, graph_id=None, group_id=None, group_owner=None)
+	create_event(db_session, 3, datetime.now(), layout_owner + " created new layout: " + layout_name + " for graph: " + graph_id + " owned by " + graph_owner, graph_owner, graph_id=graph_id, layout_owner=layout_owner, layout_name=layout_name, group_id=None, group_owner=None)
 
 	db_session.add(new_layout)
 	db_session.commit()
@@ -4057,7 +4057,7 @@ def deleteLayout(uid, gid, layoutToDelete, layout_owner):
 
 		db_session.delete(layout)
 		# Add to event table
-		create_event(db_session, 7, datetime.now(), layout_owner + " deleted layout: " + layoutToDelete + " for: " + gid + " owned by: " + uid, uid, graph_id=gid, group_id=None, group_owner=None)
+		create_event(db_session, 7, datetime.now(), layout_owner + " deleted layout: " + layoutToDelete + " for: " + gid + " owned by: " + uid, uid, graph_id=gid, group_id=None, group_owner=None, layout_name=layoutToDelete, layout_owner=layout_owner)
 
 		db_session.commit()
 

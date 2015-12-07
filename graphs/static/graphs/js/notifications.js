@@ -38,7 +38,7 @@ $(document).ready(function() {
 				href = "";
 				return href;
 			case 12:
-				href += "tasks/" + user_id + "/" + graph_id + "/";
+				href += "tasks/" + user_id + "/" + graph_id + "?layout=" + layout_name + "&layout_owner=" + layout_owner + "&showChat=true";
 				return href;
 		}
 	};
