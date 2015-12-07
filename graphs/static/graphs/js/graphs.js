@@ -95,7 +95,6 @@ $(document).ready(function() {
   });
 
   /**
-  * TEMPORARY: REMOVE AFTER MORE WORK HAS BEEN DONE.
   * Launches a new task on clicked graph.
   * Automatically populates notes etc. for now.
   */

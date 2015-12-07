@@ -187,12 +187,6 @@ def get_all_accepted_layouts_for_task(user_id, graph_id):
 		@param graph_id: ID of graph
 	'''
 
-	# Check to see if task exists
-	task = get_task(user_id, graph_id)
-
-	if task == None:
-		return []
-
 	# Get number of submitted layouts for this task
 	# Get connection to database
 	db_session = data_connection.new_session()
@@ -212,12 +206,6 @@ def get_all_submitted_layouts_for_task(user_id, graph_id):
 		@param user_id: Owner of graph
 		@param graph_id: ID of graph
 	'''
-
-	# Check to see if task exists
-	task = get_task(user_id, graph_id)
-
-	if task == None:
-		return []
 
 	# Get number of submitted layouts for this task
 	# Get connection to database
@@ -1166,6 +1154,13 @@ def set_layout_context(request, context, uid, gid):
 				my_shared_layout_names.append(layout.layout_name)
 
 		context['my_shared_layouts'] = my_shared_layout_names
+
+		task_exists = get_task(uid, gid)
+
+		if task_exists == None:
+			context["task"] = False
+		else:
+			context["task"] = True
 
 		# Get all submitted layouts
 		submitted_layouts = get_all_submitted_layouts_for_task(uid, gid)
