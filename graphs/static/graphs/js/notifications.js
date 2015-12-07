@@ -1,8 +1,10 @@
 $(document).ready(function() {
 
 	$("tr").click(function() {
-		var href = constructURLFromEventType($(this).attr("event_type"), $(this).attr("graph_id"), $(this).attr("user_id"), $(this).attr("group_id"), $(this).attr("group_owner"), $(this).attr("layout_name"), $(this).attr("layout_owner"));
-		window.location.href = href;
+		if ($(this).attr("event_type") != undefined) {
+			var href = constructURLFromEventType($(this).attr("event_type"), $(this).attr("graph_id"), $(this).attr("user_id"), $(this).attr("group_id"), $(this).attr("group_owner"), $(this).attr("layout_name"), $(this).attr("layout_owner"));
+			window.location.href = href;			
+		}
 	});
 
 	function constructURLFromEventType(event_type, graph_id, user_id, group_id, group_owner, layout_name, layout_owner) {

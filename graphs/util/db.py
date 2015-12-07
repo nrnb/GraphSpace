@@ -480,7 +480,7 @@ def create_new_task(user_id, graph_id, notes, description):
 	db_session.add(new_task)
 
 	# Add to event table
-	create_event(db_session, 4, datetime.now(), user_id + " launched new task for : " + graph_id, user_id, graph_id=graph_id, group_id=None, group_owner=None)
+	# create_event(db_session, 4, datetime.now(), user_id + " launched new task for : " + graph_id, user_id, graph_id=graph_id, group_id=None, group_owner=None)
 
 	db_session.commit()
 	db_session.close()
@@ -2496,7 +2496,7 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 	insert_data_for_graph(graphJson, graphname, username, tags, nodes, curTime, 0, db_session)
 
 	# Add to event table
-	create_event(db_session, 1, curTime, username + " created new graph: " + graphname, username, graph_id=graphname, group_id=None, group_owner=None)
+	# create_event(db_session, 1, curTime, username + " created new graph: " + graphname, username, graph_id=graphname, group_id=None, group_owner=None)
 
 	db_session.close()
 	# If everything works, return Nothing 
@@ -3113,7 +3113,7 @@ def create_group(username, groupId):
 	db_session.close()
 
 	# Add to event table
-	create_event(db_session, 2, datetime.now(), username + " created new group: " + groupId, username, graph_id=None, group_id=groupId, group_owner=username)
+	# create_event(db_session, 2, datetime.now(), username + " created new group: " + groupId, username, graph_id=None, group_id=groupId, group_owner=username)
 
 	return [groupId, cleanGroupName(groupId)]
 
