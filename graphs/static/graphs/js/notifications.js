@@ -17,7 +17,7 @@ $(document).ready(function() {
 				href += "groups/" + group_owner + "/" + group_id + "/";
 				return href;
 			case 3:
-				href += "graphs/" + user_id + "/" + graph_id + "?layout_owner=" + layout_owner + "&layout=" + layout_name;
+				href += "graphs/" + user_id + "/" + graph_id + "?layout=" + layout_name + "&layout_owner=" + layout_owner;
 				return href;
 			case 4:
 				href += "tasks/" + user_id + "/" + graph_id + "/";
@@ -29,7 +29,7 @@ $(document).ready(function() {
 				return href;
 			case 8:		
 			case 9:
-				href += "tasks/" + user_id + "/" + graph_id + "?layout_owner=" + layout_owner + "&layout=" + layout_name;
+				href += "tasks/" + user_id + "/" + graph_id + "?layout=" + layout_name + "&layout_owner=" + layout_owner;
 				return href;
 			case 10:
 				href += "tasks/" + user_id + "/" + graph_id + "/";
