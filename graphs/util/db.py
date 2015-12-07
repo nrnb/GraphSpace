@@ -995,10 +995,10 @@ def toggle_submit_layout(uid, gid, layout_owner, layout_name, logged_in):
 	if task_layout.submitted == None:
 		task_layout.submitted = 1
 		# Add to event table
-		create_event(db_session, 9, datetime.now(), layout_owner + " submitted layout: " + layout_name + " made by: " + uid + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None, layout_owner=uid, layout_name=layout_name)
+		create_event(db_session, 9, datetime.now(), layout_owner + " submitted layout: " + layout_name + " made by: " + uid + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None, layout_owner=layout_owner, layout_name=layout_name)
 	else:
 		task_layout.submitted = None
-		create_event(db_session, 9, datetime.now(), layout_owner + " unsubmitted layout: " + layout_name + " made by: " + uid + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None, layout_owner=uid, layout_name=layout_name)
+		create_event(db_session, 9, datetime.now(), layout_owner + " unsubmitted layout: " + layout_name + " made by: " + uid + " for graph: " + gid, uid, graph_id=gid, group_id=None, group_owner=None, layout_owner=layout_owner, layout_name=layout_name)
 
 	db_session.commit()
 	db_session.close()
