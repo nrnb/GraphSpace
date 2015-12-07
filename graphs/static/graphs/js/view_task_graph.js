@@ -853,24 +853,46 @@ function combineSelections(selection1, selectionArray1, selection2, selectionArr
 }
 
 var modifiedColor
-$('#valueInput').bind("DOMSubtreeModified", function() {
-  modifiedColor = "#" + $(this).text();
 
-  for (var j = 0; j < window.cy.nodes().length; j++) {
-        var node = window.cy.nodes()[j];
+$("#selectionPalette").spectrum({
+    showPalette: true,
+    palette: [ ],
+    showSelectionPalette: true, // true by default
+    change: function(color) {
+      modifiedColor = color.toHexString();
 
-        if (node.selected()) {
-          node.style("background-color", modifiedColor);
-          node.style("border-color", modifiedColor);
-          node.style("text-outline-color", modifiedColor);
-        }
-  }
+      for (var j = 0; j < window.cy.nodes().length; j++) {
+            var node = window.cy.nodes()[j];
 
+            if (node.selected()) {
+              node.style("background-color", modifiedColor);
+              node.style("border-color", modifiedColor);
+              node.style("text-outline-color", modifiedColor);
+            }
+      }
+    }
+    
 });
 
+// $('#valueInput').bind("DOMSubtreeModified", function() {
+//   modifiedColor = "#" + $(this).text();
+
+//   for (var j = 0; j < window.cy.nodes().length; j++) {
+//         var node = window.cy.nodes()[j];
+
+//         if (node.selected()) {
+//           node.style("background-color", modifiedColor);
+//           node.style("border-color", modifiedColor);
+//           node.style("text-outline-color", modifiedColor);
+//         }
+//   }
+
+// });
+
 var modifiedShape
-$("#modifyShapeSelection").change(function (){
-    modifiedShape = $(this).val();
+$(".dropdown-menu li a").click(function (){
+    modifiedShape = $(this).data("value");
+    console.log(modifiedShape);
 
     for (var j = 0; j < window.cy.nodes().length; j++) {
           var node = window.cy.nodes()[j];

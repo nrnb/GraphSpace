@@ -216,26 +216,30 @@
                 <h3>Modify</h3>
                 <div style="text-align: center;" id="modify" class="input-group">
                   <p style='text-align: left;'>Modify Color:
-                  <button
-                      class="jscolor {valueElement:'valueInput',value:'66ccff'}"
-                      style="width:50px; height:20px; border-style: none;"><div hidden id="valueInput"></div></button></p>
-                      
-                  <p id="modifyShape" style='text-align: left;'>Modify Shape:
-                  <select id="modifyShapeSelection">
-                    <option value="rectangle">Rectangle</option>
-                    <option value="roundrectangle">Round Rectangle</option>
-                    <option value="ellipse">Ellipse</option>
-                    <option value="triangle">Triangle</option>
-                    <option value="pentagon">Pentagon</option>
-                    <option value="hexagon">Hexagon</option>
-                    <option value="heptagon">Heptagon</option>
-                    <option value="octagon">Octagon</option>
-                    <option value="star">Star</option>
-                    <option value="diamond">Diamond</option>
-                    <option value="vee">Vee</option>
-                    <option value="rhomboid">Rhomboid</option>
-                  </select>
-                </p>
+                      <input type='text' class='basic' id='selectionPalette' value='red' />
+                  </p>
+
+                  <div class="dropup" style='text-align: left;'>
+                    Modify Shape: 
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                      Shapes
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                      <li><a data-value="rectangle">Rectangle</a></li>
+                      <li><a data-value="roundrectangle">Round Rectangle</a></li>
+                      <li><a data-value="ellipse">Ellipse</a></li>
+                      <li><a data-value="triangle">Triangle</a></li>
+                      <li><a data-value="pentagon">Pentagon</a></li>
+                      <li><a data-value="hexagon">Hexagon</a></li>
+                      <li><a data-value="heptagon">Heptagon</a></li>
+                      <li><a data-value="octagon">Octagon</a></li>
+                      <li><a data-value="star">Star</a></li>
+                      <li><a data-value="diamond">Diamond</a></li>
+                      <li><a data-value="vee">Vee</a></li>
+                      <li><a data-value="rhomboid">Rhomboid</a></li>
+                    </ul>
+                  </div>
                 </div>
                 <hr>
                 <h3>Move</h3>
@@ -266,6 +270,10 @@
 
 <!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
 <script type="text/javascript" src="{% static 'graphs/js/cytoscape.js-panzoom.js' %}"></script>
+
+<!-- Spectrum Color Palette -->
+<script src="{% static 'graphs/js/spectrum.js' %}"></script>
+<link rel="stylesheet" href="{% static 'graphs/css/spectrum.css' %}">
 
 <!-- stylesheet for view_graph page -->
 
