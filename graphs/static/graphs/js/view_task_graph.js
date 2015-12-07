@@ -852,6 +852,21 @@ function combineSelections(selection1, selectionArray1, selection2, selectionArr
     }
 }
 
+$("#unselect").click(function(e) {
+  e.preventDefault();
+  for (var j = 0; j < window.cy.nodes().length; j++) {
+    var node = window.cy.nodes()[j];
+    node.unselect();
+  }
+
+  $('input:checkbox[name=colors]').each(function(index) {
+    $(this).prop('checked', false);
+  });
+  $('input:checkbox[name=shapes]').each(function(index) {
+    $(this).prop('checked', false);
+  });
+});
+
 var modifiedColor
 
 $("#selectionPalette").spectrum({
@@ -874,21 +889,6 @@ $("#selectionPalette").spectrum({
     
 });
 
-// $('#valueInput').bind("DOMSubtreeModified", function() {
-//   modifiedColor = "#" + $(this).text();
-
-//   for (var j = 0; j < window.cy.nodes().length; j++) {
-//         var node = window.cy.nodes()[j];
-
-//         if (node.selected()) {
-//           node.style("background-color", modifiedColor);
-//           node.style("border-color", modifiedColor);
-//           node.style("text-outline-color", modifiedColor);
-//         }
-//   }
-
-// });
-
 var modifiedShape
 $(".dropdown-menu li a").click(function (){
     modifiedShape = $(this).data("value");
@@ -903,37 +903,123 @@ $(".dropdown-menu li a").click(function (){
     }
 });
 
+function travelDistance(center, nodePosition) {
+  var a = Math.abs(center.x - nodePosition.x);
+  var b = Math.abs(center.y - nodePosition.y);
+  var ratio = b/a;
+
+  var miniH = Math.sqrt(1+ratio*ratio);
+
+  var distance = 0.10*Math.sqrt(a*a + b*b);
+  var travelX = distance / miniH;
+  var travelY = ratio * travelX;
+
+  return {x:travelX,y:travelY};
+}
+
+function groupUngroup(type) {
+  var center = {x: window.cy.width()/2, y: window.cy.height()/2};
+
+  for (var j = 0; j < window.cy.nodes().length; j++) {
+    var node = window.cy.nodes()[j];
+
+    if (node.selected()) {
+      var position = node.renderedPosition();
+      var distance = travelDistance(center, position);
+
+      if (position.x < center.x) {
+        if (type == 1) {
+          position.x += distance.x;
+        } else {
+          position.x -= distance.x;
+        }
+        
+      }
+      if (position.x > center.x) {
+        if (type == 1) {
+          position.x -= distance.x;
+        } else {
+          position.x += distance.x;
+        }
+      }
+
+      if (position.y < center.y) {
+        if (type == 1) {
+          position.y += distance.y;
+        } else {
+          position.y -= distance.y;
+        }
+      }
+      if (position.y > center.y) {
+        if (type == 1) {
+          position.y -= distance.y;
+        } else {
+          position.y += distance.y;
+        }
+      }
+
+      node.renderedPosition(position);
+    }
+  }
+}
+
+function move(direction) {
+  var distance = 15;
+
+  for (var j = 0; j < window.cy.nodes().length; j++) {
+    var node = window.cy.nodes()[j];
+
+    if (node.selected()) {
+      var position = node.renderedPosition();
+
+      switch(direction) {
+        case "up":
+          position.y -= distance;
+          break;
+        case "down":
+          position.y += distance;
+          break;
+        case "left":
+          position.x -= distance;
+          break;
+        case "right":
+          position.x += distance;
+          break;
+        default:
+          position.x += 0;
+      }
+      node.renderedPosition(position);
+    }
+  }
+}
+
 $("#group").click(function (e) {
     e.preventDefault();
-
-    var center = {x: window.cy.width()/2, y: window.cy.height()/2};
-    var sideLength = 100;
-
-    for (var j = 0; j < window.cy.nodes().length; j++) {
-          var node = window.cy.nodes()[j];
-
-          if (node.selected()) {
-            var position = node.renderedPosition();
-
-            if (position.x < (center.x - sideLength/2)) {
-              position.x += 10;
-              
-            }
-            if (position.x > (center.x + sideLength/2)) {
-              position.x -= 10;
-            }
-
-            if (position.y < (center.y - sideLength/2)) {
-              position.y += 10;
-            }
-            if (position.y > (center.y + sideLength/2)) {
-              position.y -= 10;
-            }
-
-            node.renderedPosition(position);
-          }
-    }
+    groupUngroup(1);
 });
+
+$("#ungroup").click(function (e) {
+    e.preventDefault();
+    groupUngroup(2);
+});
+
+$("#upArrow").click(function (e) {
+    e.preventDefault();
+    move("up");
+});
+$("#leftArrow").click(function (e) {
+    e.preventDefault();
+    move("left");
+});
+$("#rightArrow").click(function (e) {
+    e.preventDefault();
+    move("right");
+});
+$("#downArrow").click(function (e) {
+    e.preventDefault();
+    move("down");
+});
+
 
 function intersect(a, b) {
     var t;

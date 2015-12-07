@@ -212,6 +212,7 @@
                 <h3>Selection</h3>
                 <div style="text-align: center;" id="selection" class="input-group">
                 </div>
+                <br><button class="btn btn-danger" id="unselect">Unselect All</button><br>
                 <hr>
                 <h3>Modify</h3>
                 <div style="text-align: center;" id="modify" class="input-group">
@@ -243,7 +244,48 @@
                 </div>
                 <hr>
                 <h3>Move</h3>
-                <button class="btn btn-primary" id="group" style="display: block; margin: 0 auto;">Group Selected Nodes</button>
+                <div id="moveArrows" style="text-align:center;">
+
+                  <table style="margin: 0 auto;">
+                    <tr>
+                      <th></th>
+                      <th>
+                        <button type="button" class="btn btn-default" aria-label="Left Align" id="upArrow">
+                          <span class="glyphicon glyphicon-arrow-up"></span>
+                        </button>
+                      </th>
+                      <th></th>
+                      <th></th>
+                    </tr>
+                    <tr>
+                      <td>
+                        <button type="button" class="btn btn-default" aria-label="Left Align" id="leftArrow">
+                          <span class="glyphicon glyphicon-arrow-left"></span>
+                        </button>
+                      </td>
+                      <td></td>
+                      <td>
+                        <button type="button" class="btn btn-default" aria-label="Left Align" id="rightArrow">
+                          <span class="glyphicon glyphicon-arrow-right"></span>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td>
+                        <button type="button" class="btn btn-default" aria-label="Left Align" id="downArrow">
+                          <span class="glyphicon glyphicon-arrow-down"></span>
+                        </button>
+                      </td>
+                      <td></td>
+                    </tr>
+                    <tr>
+                      <button class="btn btn-primary" id="group" style="display: block; margin: 0 auto;">Coalesce Selected Nodes</button><br>
+                      <button class="btn btn-primary" id="ungroup" style="display: block; margin: 0 auto;">Scatter Selected Nodes</button><br>
+                    </tr>
+                  </table>
+                </div>
+
                 <hr>
               </div>
             </div>
