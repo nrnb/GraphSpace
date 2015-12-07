@@ -431,7 +431,7 @@ $(document).ready(function() {
     });
 
     function fetchChatData(layout_name, layout_owner, userId, graphId, loggedIn) {
-      $.post("../../fetch_feedback/", {
+      $.post("../../../fetch_feedback/", {
         "user_id": userId,
         "graph_id": graphId,
         "layout_name": layout_name,
@@ -460,7 +460,7 @@ $(document).ready(function() {
           return alert("Please enter some notes!");
         }
 
-        $.post("../../add_feedback_note/", {
+        $.post("../../../add_feedback_note/", {
           "user_id": userId,
           "graph_id": graphId,
           "layout_name": layout_name,
