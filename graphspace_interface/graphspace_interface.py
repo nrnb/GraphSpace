@@ -92,6 +92,8 @@ def validate_json(G):
     @param G: NetworkX object.
     """
 
+    # AT to Divit: Is there a way to ensure that a 'null' value does not exist in the json
+
     # Validate all node properties
     validate_node_properties(G)
 
@@ -742,6 +744,13 @@ def postGraph(G,graphid,outfile,user,password,metadata=None,logfile=None):
     else:
         logout = None
         
+    # AT to Divit: We should force a user to run the json validator
+    #              for every graph posted. Currently, the onus lies
+    #              on the user to invoke the validator prior to posting the graph.
+
+    # validate_json(G)
+
+
     # convert NetworkX object to a serialized_graph
     convertNXToJSON(G,outfile,metadata)
 
