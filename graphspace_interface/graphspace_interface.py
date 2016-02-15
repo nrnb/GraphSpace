@@ -601,13 +601,13 @@ def get_edge_attribute(G,source,target,attr):
 ####################################################################
 ### POSTING FUNCTIONS ##############################################
     
-def convertNXToDict(G,metadata={'description':'','tags':[],'title':''}):
+def convertNXToDict(G,metadata={'description':'','tags':[],'name':''}):
     """Converts a NetworkX object G to a dictionary that can be interepreted as a JSON
     object. 
  
     :param G: NetworkX object
     :param metadata: dictionary of graph metadata. This dictionary 
-    should contain a 'description' (string), 'tags' (list of strings), and 'title' (string). 
+    should contain a 'description' (string), 'tags' (list of strings), and 'name' (string). 
 
     If this  argument is not  specified, the returned  dictionary will
     contain an empty  description and tags list.  Note that GraphSpace
@@ -615,7 +615,7 @@ def convertNXToDict(G,metadata={'description':'','tags':[],'title':''}):
     even if they are empty.
 
     :returns: dictionary -- the dictionary has the following elements:
-      {'metadata':{'description':<str>,'tags':<str list>,'title':<str>},
+      {'metadata':{'description':<str>,'tags':<str list>,'name':<str>},
        'graph': {'nodes': <node list>, 'edges': <edge list>},
       }
     The 'nodes' and 'edges' attributes are lists of dictionaries containing
@@ -630,8 +630,8 @@ def convertNXToDict(G,metadata={'description':'','tags':[],'title':''}):
     out = {}
     
     # Add metadata information
-    if 'description' not in metadata or 'tags' not in metadata or 'title' not in metadata:
-        raise TypeError('metadata dictionary must contain "description", "tags", and "title" entries.\n')
+    if 'description' not in metadata or 'tags' not in metadata or 'name' not in metadata:
+        raise TypeError('metadata dictionary must contain "description", "tags", and "name" entries.\n')
     out['metadata'] = metadata
 
     # Add graph information (empty nodes and edges for now)
