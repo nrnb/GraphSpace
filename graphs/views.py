@@ -396,6 +396,7 @@ def view_graph(request, uid, gid):
     if request.method == "GET" and 'view_json' in request.GET:
         return HttpResponseRedirect("/json/%s/%s" % (uid, gid))
 
+    print context
     return render(request, 'graphs/view_graph.html', context)
 
 def view_json(request, uid, gid):
@@ -1246,8 +1247,6 @@ def graph_exists(request, user_id, graphname):
             return HttpResponse(json.dumps(db.userNotFoundError(), indent=4, separators=(',', ': ')), content_type="application/json")
 
         graph_exists = db.graph_exists(user_id, graphname)
-
-        print "Graph exists:", graph_exists
 
         if graph_exists == False:
             return HttpResponse(json.dumps(db.throwError(404, "User " + user_id + " owns no graph with id " + graphname + "!"), indent=4, separators=(',', ': ')), content_type="application/json")

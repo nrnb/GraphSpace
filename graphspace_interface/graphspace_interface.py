@@ -149,6 +149,8 @@ def validate_node_properties(G):
     for node_id in G.node:
         node_data = G.node[node_id]
 
+        node_id = node_id.replace("\n", "")
+
         # Checks shape of nodes to make sure it contains only legal shapes
         if "shape" in node_data:
             find_property_in_array("Node", node_id, "shape", node_data["shape"], ALLOWED_NODE_SHAPES)
@@ -192,12 +194,17 @@ def find_property_in_array(elementType, key, prop, value, array):
     :param prop: Name to search for in array
     :param array: Array to search for property in
     """
+<<<<<<< HEAD
 
     ## TODO for DIVIT: I think this is supposed to be value not in array?
     ## Do you want to throw this string as an error?
     
     if prop not in array:
         print elementType + ":", key, "contains illegal", prop, value, "Accepted types are:", array
+=======
+    if value not in array:
+        raise Exception("%s with ID: \"%s\" contains illegal %s: \"%s\".  Accepted values for this property are: %s." % (elementType, key, prop, value, array))
+>>>>>>> 872203c11f98be9649c90781208acb80109e7956
 
         
 ####################################################################
@@ -237,9 +244,14 @@ def add_node(G,node_id,label='',shape='ellipse',color='#FFFFFF',height=None,\
         add_node_popup(G,node_id,popup)
     if k:
         add_node_k(G,node_id,k)
+    
+    # If bubble is specified, use the provided color,
+    # otherwise set border color of node to be black by default
     if bubble:
-        bubble_effect(G,node_id,color,whitetext=False)
-        
+        bubble_effect(G,node_id,bubble,whitetext=False)
+    else:
+        add_node_border_color(G,node_id,"#888")
+
     ## set height and width if len(label)==0 and height/width
     ## are None (auto-resize).  Make them very small nodes.
     ## height=width=5
@@ -416,7 +428,7 @@ def add_node_border_style(G,node_id,style):
         raise Exception('"%s" is not an allowed border style.' % (style))
     G.node[node_id]['border_style'] = style
 
-def add_node_border_color(G,node_id,color):
+def add_node_border_color(G,node_id,color,border_width=2):
     '''
     Set the border color for node "node_id" in graph "G".
     :param G: NetworkX object.
@@ -424,7 +436,7 @@ def add_node_border_color(G,node_id,color):
     :param color: string -- hexadecimal representation of the text outline color (e.g., #FFFFFF) or a color name.
     '''
     G.node[node_id]['border_color'] = color
-
+    G.node[node_id]['border_width'] = border_width
 ## Get any attribute of a node
 def get_node_attribute(G,node_id,attr):
     '''
@@ -744,7 +756,8 @@ def postGraph(G,graphid,outfile,user,password,metadata=None,logfile=None):
     graph_exists = False
     cmd = _constructExistsCommand(graphid,user,password)
     outstring = execute(cmd,logout)
-    if '"StatusCode": 200' in outstring:
+    outstring = json.loads(outstring)
+    if outstring["StatusCode"] == 200:
         # a status code of 200 indicates that a graph already exists.
         graph_exists = True
 
@@ -835,3 +848,100 @@ def execute(cmd,logout=None):
         sys.exit()
     return out
 
+<<<<<<< HEAD
+=======
+## AR: The examples in this main() function will bepart of the Programmer's Guide instead of here.  I have left it in for now for testing.
+# make user and password command line options.
+def main(args):
+    """
+    Usage (from within the current directory)
+
+    python graphspace_interface.py
+
+    This main function posts two graphs.  The first graph reads 
+    in an edge file and modifies the attributes for each node and
+    each edge.  The second graph creates 10 random nodes and 20 
+    random undirected edges, using the default attributes from 
+    add_node() and add_edge() functions.
+
+    todo:: Currently, the example file is committed with this source code. Graphs are
+    posted to GraphSpace with Anna's username and password and shared with 
+    her group 'testgroup'.  This should be cleaned up.
+    
+    todo:: need to make an OptionParser for this main function if we are 
+    going to keep it.  
+
+    todo:: raise exceptions for unexpected colors/widths/shapes/etc.
+    """
+    
+    edgefile = 'gs-interface-example-edges.txt'
+    graphid = 'gs-interface-example1'
+    outfile = 'gs-interface-example1.json'
+    user = 'tester@test.com'
+    password = 'test'
+    group='testgroup'
+
+    #############
+    ## Graph 1 (tmp): read edges in from a file.
+    ## Take the first two columns of the file as the edges.
+    # edges = []
+    # with open(edgefile) as fin:
+    #     for line in fin:
+    #         if line[0] == '#': # skip comments
+    #             continue
+    #         row = line.strip().split()
+    #         edges.append((row[0],row[1]))
+
+    ## Make a directed graph NetworkX object.
+    ## A directed graph will work even if we 
+    ## want to show an undirected graph, since
+    ## each edge has a "directed" attribute that
+    ## determines whether the edge is drawn with an
+    ## arrow or not.
+    # G = nx.DiGraph(edges,directed=True)
+
+    # for n in G.nodes():
+    #     label= 'node\n%s' % (n)
+    #     add_node_label(G,n,label)
+    #     add_node_wrap(G,n,'wrap')
+    #     add_node_color(G,n,'#ACFA58')
+    #     add_node_shape(G,n,'rectangle')
+    #     add_node_height(G,n,None,label)
+    #     add_node_width(G,n,None,label)
+
+    # for t,h in G.edges():
+    #     add_edge_directionality(G,t,h,True)
+    #     add_edge_color(G,t,h,'#000000')
+    #     add_edge_width(G,t,h,2)
+        
+    ## Divit's Note: We should have a JSON validator at this step
+    ## Divit: We should.  I want to talk to Murali about possibly enhancing the validator.
+
+    # postGraph(G,graphid,outfile=outfile,user=user,password=password)
+    # if group != None:
+    #     shareGraph(graphid,user=user,password=password,group=group)
+
+    #############
+    ## Graph 2 (tmp2): randomly generate nodes and edges.
+    graphid = 'gs-interface-example2'
+    outfile = 'gs-interface-example2.json'
+
+    G = nx.DiGraph(directed=True)
+    # add 10 nodes
+    nodeids = ['node\n%d' % (i) for i in range(10)]
+    for n in nodeids:
+        add_node(G,n,label=n)
+    for i in range(20): # randomly add 20 edges
+        add_edge(G,random.choice(nodeids),random.choice(nodeids),width=random.choice([1,2,3,4,5]),directed=True)
+    
+    validate_json(G)
+    postGraph(G,graphid,outfile=outfile,user=user,password=password,logfile='tmp.log')
+    if group != None:
+        shareGraph(graphid,user=user,password=password,group=group)
+
+    print 'DONE'
+
+#######################################################
+if __name__=='__main__':
+    main(sys.argv)
+>>>>>>> 872203c11f98be9649c90781208acb80109e7956
