@@ -68,9 +68,6 @@ ALLOWED_TEXT_HALIGN = ['left', 'center', 'right']
 
 ALLOWED_TEXT_VALIGN = ['top', 'center', 'bottom']
 
-## See http://js.cytoscape.org/#style/labels
-ALLOWED_TEXT_WRAP = ['wrap','none']
-
 ## See http://js.cytoscape.org/#style/edge-arrow
 ALLOWED_ARROW_SHAPES = ['tee', 'triangle', 'triangle-tee', 'triangle-backcurve', 
                         'square', 'circle', 'diamond', 'none']
@@ -195,6 +192,10 @@ def find_property_in_array(elementType, key, prop, value, array):
     :param prop: Name to search for in array
     :param array: Array to search for property in
     """
+
+    ## TODO for DIVIT: I think this is supposed to be value not in array?
+    ## Do you want to throw this string as an error?
+    
     if prop not in array:
         print elementType + ":", key, "contains illegal", prop, value, "Accepted types are:", array
 
@@ -231,12 +232,13 @@ def add_node(G,node_id,label='',shape='ellipse',color='#FFFFFF',height=None,\
     add_node_color(G,node_id,color)
     add_node_width(G,node_id,width,label)
     add_node_height(G,node_id,width,label)
+    G.node[node_id]['text_outline_color']='#000000'
     if popup:
         add_node_popup(G,node_id,popup)
     if k:
         add_node_k(G,node_id,k)
     if bubble:
-        bubble_effect(G,node_id,textoutlinecolor,whitetext=False)
+        bubble_effect(G,node_id,color,whitetext=False)
         
     ## set height and width if len(label)==0 and height/width
     ## are None (auto-resize).  Make them very small nodes.
@@ -281,9 +283,9 @@ def add_node_wrap(G,node_id,wrap):
     :param node_id: string -- unique ID of the node.
     :param wrap: string denoting the type of wrap: one of "wrap" or "none". 
     :raise exception: if the wrap parameter is not one of the allowed wrap styles.
-    See ALLOWED_TEXT_WRAP for more details.
+    See ALLOWED_NODE_TEXT_WRAP for more details.
     '''
-    if wrap not in ALLOWED_TEXT_WRAP:
+    if wrap not in ALLOWED_NODE_TEXT_WRAP:
         raise Exception('"%s" is not an allowed text wrap style.' % (wrap))
     G.node[node_id]['text_wrap'] = wrap
 
@@ -833,97 +835,3 @@ def execute(cmd,logout=None):
         sys.exit()
     return out
 
-## AR: The examples in this main() function will bepart of the Programmer's Guide instead of here.  I have left it in for now for testing.
-# make user and password command line options.
-def main(args):
-    """
-    Usage (from within the current directory)
-
-    python graphspace_interface.py
-
-    This main function posts two graphs.  The first graph reads 
-    in an edge file and modifies the attributes for each node and
-    each edge.  The second graph creates 10 random nodes and 20 
-    random undirected edges, using the default attributes from 
-    add_node() and add_edge() functions.
-
-    todo:: Currently, the example file is committed with this source code. Graphs are
-    posted to GraphSpace with Anna's username and password and shared with 
-    her group 'testgroup'.  This should be cleaned up.
-    
-    todo:: need to make an OptionParser for this main function if we are 
-    going to keep it.  
-
-    todo:: raise exceptions for unexpected colors/widths/shapes/etc.
-    """
-    
-    edgefile = 'gs-interface-example-edges.txt'
-    graphid = 'gs-interface-example1'
-    outfile = 'gs-interface-example1.json'
-    user = 'tester@test.com'
-    password = 'test'
-    group='testgroup'
-
-    #############
-    ## Graph 1 (tmp): read edges in from a file.
-    ## Take the first two columns of the file as the edges.
-    # edges = []
-    # with open(edgefile) as fin:
-    #     for line in fin:
-    #         if line[0] == '#': # skip comments
-    #             continue
-    #         row = line.strip().split()
-    #         edges.append((row[0],row[1]))
-
-    ## Make a directed graph NetworkX object.
-    ## A directed graph will work even if we 
-    ## want to show an undirected graph, since
-    ## each edge has a "directed" attribute that
-    ## determines whether the edge is drawn with an
-    ## arrow or not.
-    # G = nx.DiGraph(edges,directed=True)
-
-    # for n in G.nodes():
-    #     label= 'node\n%s' % (n)
-    #     add_node_label(G,n,label)
-    #     add_node_wrap(G,n,'wrap')
-    #     add_node_color(G,n,'#ACFA58')
-    #     add_node_shape(G,n,'rectangle')
-    #     add_node_height(G,n,None,label)
-    #     add_node_width(G,n,None,label)
-
-    # for t,h in G.edges():
-    #     add_edge_directionality(G,t,h,True)
-    #     add_edge_color(G,t,h,'#000000')
-    #     add_edge_width(G,t,h,2)
-        
-    ## Divit's Note: We should have a JSON validator at this step
-    ## Divit: We should.  I want to talk to Murali about possibly enhancing the validator.
-
-    # postGraph(G,graphid,outfile=outfile,user=user,password=password)
-    # if group != None:
-    #     shareGraph(graphid,user=user,password=password,group=group)
-
-    #############
-    ## Graph 2 (tmp2): randomly generate nodes and edges.
-    graphid = 'gs-interface-example2'
-    outfile = 'gs-interface-example2.json'
-
-    G = nx.DiGraph(directed=True)
-    # add 10 nodes
-    nodeids = ['node\n%d' % (i) for i in range(10)]
-    for n in nodeids:
-        add_node(G,n,label=n)
-    for i in range(20): # randomly add 20 edges
-        add_edge(G,random.choice(nodeids),random.choice(nodeids),width=random.choice([1,2,3,4,5]),directed=True)
-    
-    validate_json(G)
-    # postGraph(G,graphid,outfile=outfile,user=user,password=password,logfile='tmp.log')
-    # if group != None:
-    #     shareGraph(graphid,user=user,password=password,group=group)
-
-    print 'DONE\n'
-
-#######################################################
-if __name__=='__main__':
-    main(sys.argv)
