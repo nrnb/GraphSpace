@@ -1,6 +1,6 @@
 ## See http://js.cytoscape.org/#style/node-body
-ALLOWED_NODE_SHAPES = ['rectangle', 'roundrectangle', 'ellipse', 'triangle', 
-                       'pentagon', 'hexagon', 'heptagon', 'octagon', 'star', 
+ALLOWED_NODE_SHAPES = ['rectangle', 'roundrectangle', 'ellipse', 'triangle',
+                       'pentagon', 'hexagon', 'heptagon', 'octagon', 'star',
                        'diamond', 'vee', 'rhomboid']
 
 ALLOWED_NODE_BORDER_STYLES = ['solid', 'dotted', 'dashed','double']
@@ -21,7 +21,7 @@ ALLOWED_TEXT_VALIGN = ['top', 'center', 'bottom']
 ALLOWED_TEXT_WRAP = ['wrap','none']
 
 ## See http://js.cytoscape.org/#style/edge-arrow
-ALLOWED_ARROW_SHAPES = ['tee', 'triangle', 'triangle-tee', 'triangle-backcurve', 
+ALLOWED_ARROW_SHAPES = ['tee', 'triangle', 'triangle-tee', 'triangle-backcurve',
                         'square', 'circle', 'diamond', 'none']
 
 ## See http://js.cytoscape.org/#style/edge-line
@@ -46,7 +46,7 @@ def verify_json(graph_json):
             shape = "ellipse"
 
         node["shape"] = shape
-    
+
     return json.dumps(graph_json)
 
 def validate_json(graphJson):
@@ -106,7 +106,7 @@ def validate_edge_properties(edges):
     	if "source" not in edge or "target" not in edge:
     		return "All edges must have at least a source and target property.  Please verify that all edges meet this requirement."
 
-		edge_id = "with source: " + edge["source"] + "and target: " + edge["target"]
+		edge_id = "with source: " + str(edge["source"]) + "and target: " + str(edge["target"])
 
         # If edge is directed, it must have a target_arrow_shape
         if "directed" in edge and edge["directed"] == "true":
@@ -163,17 +163,17 @@ def validate_node_properties(nodes):
     	# Check to see if ID is in node
     	if "id" not in node:
     		return "All nodes must have a unique ID.  Please verify that all nodes meet this requirement."
-		
+
 		if node["id"] not in unique_ids:
 			unique_ids.add(node["id"])
 		else:
-			return "There are multiple nodes with ID: " + node["id"] + ".  Please make sure all node IDs are unique."
+			return "There are multiple nodes with ID: " + str(node["id"]) + ".  Please make sure all node IDs are unique."
 
         # Checks shape of nodes to make sure it contains only legal shapes
         if "shape" in node:
             error += find_property_in_array("Node", node["id"], "shape", node["shape"], ALLOWED_NODE_SHAPES)
 
-        # If node contains a border-style property, check to make sure it is 
+        # If node contains a border-style property, check to make sure it is
         # a legal value
         if "border_style" in node:
             error += find_property_in_array("Node", node["id"], "border_style", node["border_style"], ALLOWED_NODE_BORDER_STYLES)
@@ -219,7 +219,7 @@ def find_property_in_array(elementType, key, prop, value, array):
     """
     if value not in array:
         array_list = ",".join(array)
-        return elementType + " " + key + " contains illegal value for property: " + prop + ".  Value given for this property was: " + value + ".  Accepted values for property: " + prop + " are: [" + array_list + "]"
+        return elementType + " " + str(key) + " contains illegal value for property: " + prop + ".  Value given for this property was: " + value + ".  Accepted values for property: " + prop + " are: [" + array_list + "]"
     else:
         return ""
 
@@ -230,15 +230,16 @@ def assign_edge_ids(json_string):
 		:param json_string: JSON of graph
 		:return json_string: JSON of graph having unique ID's for all edges
 	'''
-	
+
 	ids = []
 	# Creates ID's for all of the edges by creating utilizing the source and target nodes
 	# The edge ID would have the form: source-target
 	for edge in json_string['graph']['edges']:
+		source_node = str(edge['data']['source'])
+		target_node = str(edge['data']['target'])
+		edge['data']['id'] = source_node + '-' + target_node
 
-		edge['data']['id'] = edge['data']['source'] + '-' + edge['data']['target']
-
-		# If the ID has not yet been seen (is unique), simply store the ID 
+		# If the ID has not yet been seen (is unique), simply store the ID
 		# of that edge as source-target
 		if edge['data']['id'] not in ids:
 			ids.append(edge['data']['id'])
@@ -250,13 +251,13 @@ def assign_edge_ids(json_string):
 			counter = 0
 			while edge['data']['id'] in ids:
 				counter += 1
-				edge['data']['id'] = edge['data']['id'] + str(counter)
+				edge['data']['id'] = edge['data']['id'] + '_'+ str(counter)
 			ids.append(edge['data']['id'])
 
 	# Return JSON having all edges containing unique ID's
 	return json_string
 
-# This file is a wrapper to communicate with sqlite3 database 
+# This file is a wrapper to communicate with sqlite3 database
 # that does not need authentication for connection.
 
 # It may be viewed as the controller to the database
@@ -276,12 +277,12 @@ def convert_json(original_json):
 
             "graph": {
                 "data": {
-                    "nodes": [ 
+                    "nodes": [
                         { "id": "node1", "label": "n1", ... },
                         { "id": "node2", "label": "n2", ... },
                         ...
                     ],
-                    "edges": [ 
+                    "edges": [
                         { "id": "edge1", "label": "e1", ... },
                         { "id": "edge2", "label": "e2", ... },
                         ...

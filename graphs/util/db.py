@@ -34,21 +34,21 @@ URL_PATH = settings.URL_PATH
 def add_everyone_to_password_reset():
 	'''
 		Adds all users to password reset table (cold-start).
-		Only use this once so we know crypto algorithm used 
+		Only use this once so we know crypto algorithm used
 		for forgot password functionalities
 
 	'''
 
 	#create a new db session
 	db_session = data_connection.new_session()
-	
+
 	try:
 		# Get all users that are currently in the user table
 		user_ids = db_session.query(models.User.user_id).all()
-		
+
 		# Go through each username and add it to the password_reset table
 		for user_id in user_ids:
-			# This is done to remove the unicode encoding and simply 
+			# This is done to remove the unicode encoding and simply
 			# extract the string
 			user_id  = user_id[0]
 			add_user_to_password_reset(user_id, db_session = db_session)
@@ -56,13 +56,13 @@ def add_everyone_to_password_reset():
 	except NoResultFound:
 		print "There are no users in the database"
 		return None
-	
+
 	db_session.close()
 
 def add_user_to_password_reset(email, db_session=None):
 	'''
 		Adds a specific user to password_reset table.
-		If email is in this, it automatically sends email to change 
+		If email is in this, it automatically sends email to change
 		password for that account the next time the user logs on
 
 		:param email: Email of the user for GraphSpace
@@ -73,14 +73,14 @@ def add_user_to_password_reset(email, db_session=None):
 
 	# Get the user if they exist
 	user_id = db_session.query(models.User.user_id).filter(models.User.user_id == email).first()
-	
+
 	# Generate unique code that GraphSpace will use to identify
 	# which user is trying to reset their password
 	code = id_generator()
 
 	# Create new entry to be inserted into password_reset table
 	reset_user = models.PasswordReset(id = None, user_id = email, code = code, created = datetime.now())
-	
+
 	# Commit the changes to the database
 	db_session.add(reset_user)
 	db_session.commit()
@@ -145,7 +145,7 @@ def sendForgotEmail(email):
 	mail_title = 'Password Reset Information for GraphSpace!'
 	message = 'Please go to the following url to reset your password: ' + URL_PATH + 'reset/?id=' + reset_code[0]
 	emailFrom = "GraphSpace Admin"
-	
+
 	# Sends email to respective user
 	send_mail(mail_title, message, emailFrom, [email], fail_silently=False)
 	db_session.close()
@@ -156,7 +156,7 @@ def retrieveResetInfo(reset_code):
 		Retrieves the reset information for a user (for comparing which user it is).
 
 		:param reset_code: Code that the user has to match to HTTP GET request
-		:return account: Account associated with the code 
+		:return account: Account associated with the code
 	'''
 
 	#create a new db session
@@ -210,7 +210,7 @@ def resetPassword(username, password):
 #### ONE TIME CODE -- KEEP FOR REFERENCE
 def reUploadInconsistentGraphs(data):
 	con = None
-	try: 
+	try:
 		incosistent_graphs = open("inconsistency.txt", "a")
 		con = lite.connect(DB_NAME)
 		cur = con.cursor()
@@ -255,7 +255,7 @@ def reUploadInconsistentGraphs(data):
 					print "Unspecified node: ", node
 					unspecified_nodes += node + ", "
 					mark_for_deletion = True
-				
+
 			if mark_for_deletion == True:
 				incosistent_graphs.write(graph_id + '\t' + user_id + "\t" + created + "\t" + modified + "\t" + unspecified_nodes + "\n" )
 				cur.execute('delete from graph where graph_id = ? and user_id = ?', (graph_id, user_id))
@@ -280,13 +280,13 @@ def reUploadInconsistentGraphs(data):
 
 def checkPublicNodeEdgeConsistency():
 	'''
-		Goes through public graph JSONs in GraphSpace database and makes sure 
-		that the node and edge table have the appropriate 
+		Goes through public graph JSONs in GraphSpace database and makes sure
+		that the node and edge table have the appropriate
 		values and nothing that shouldn't be there.
 
 	'''
 	con = None
-	try: 
+	try:
 		con = lite.connect(DB_NAME)
 		cur = con.cursor()
 
@@ -307,13 +307,13 @@ def checkPublicNodeEdgeConsistency():
 
 def checkNodeEdgeConsistencyOfUser(user_id):
 	'''
-		Goes through JSONs in GraphSpace database and makes sure 
-		that the node and edge table have the appropriate 
+		Goes through JSONs in GraphSpace database and makes sure
+		that the node and edge table have the appropriate
 		values and nothing that shouldn't be there.
 
 	'''
 	con = None
-	try: 
+	try:
 		con = lite.connect(DB_NAME)
 		cur = con.cursor()
 
@@ -345,7 +345,7 @@ def id_generator(size=20, chars=string.ascii_uppercase + string.digits):
 def get_valid_user(username, password):
 	'''
 		Checks to see if a user/password combination exists.
-		
+
 		:param username: Email of the user in GraphSpace
 		:param password: Password of the user
 		:return username: <Username> | None if wrong information
@@ -365,7 +365,7 @@ def get_valid_user(username, password):
 		return valid_user
 	except NoResultFound:
 		db_session.close()
-		return None	
+		return None
 
 def get_graph(user_id, graph_id):
 	'''
@@ -378,7 +378,7 @@ def get_graph(user_id, graph_id):
 	db_session = data_connection.new_session()
 
 	try:
-		# Gets graph 
+		# Gets graph
 		graph = db_session.query(models.Graph).filter(models.Graph.user_id == user_id).filter(models.Graph.graph_id == graph_id).one()
 		db_session.close()
 		return graph
@@ -419,7 +419,7 @@ def get_default_layout(uid, gid):
 		return json.dumps({"json": cytoscapePresetLayout(json.loads(default_layout.json))})
 	except NoResultFound:
 		db_session.close()
-		return json.dumps(None)	
+		return json.dumps(None)
 
 def get_default_layout_id(uid, gid):
 	'''
@@ -449,7 +449,7 @@ def get_layout(layout_id):
 		return layout
 	except NoResultFound:
 		db_session.close()
-		return None	
+		return None
 
 def get_default_layout_name(uid, gid):
 	'''
@@ -486,20 +486,20 @@ def set_layout_context(request, context, uid, gid):
 
 		# If the layout is not one of the automatic layout algorithms
 		if request.GET.get('layout') != 'default_breadthfirst' and request.GET.get('layout') != 'default_concentric' and request.GET.get('layout') != 'default_circle' and request.GET.get('layout') != 'default_cose' and request.GET.get('layout') != 'default_grid':
-		    
+
 		    # Check to see if the user is logged in
 		    loggedIn = None
 		    if 'uid' in context:
 		    	loggedIn = context['uid']
 
-	    	# Based on the logged in user and the graph, check to see if 
+	    	# Based on the logged in user and the graph, check to see if
 	    	# there exists a layout that matches the query term
 		    graph_json = get_layout_for_graph(request.GET.get('layout'), request.GET.get('layout_owner'), gid, uid, loggedIn)
 
 		    # If the layout either does not exist or the user is not allowed to see it, prompt them with an erro
 		    if graph_json == None:
 		    	context['Error'] = "Layout: " + request.GET.get('layout') + " either does not exist or " + uid + " has not shared this layout yet.  Click <a href='" + URL_PATH + "graphs/" + uid + "/" + gid + "'>here</a> to view this graph without the specified layout."
-		    
+
 	    	# Return layout JSON
 		    layout_to_view = json.dumps({"json": graph_json})
 		    context["layout_owner"] = request.GET.get('layout_owner')
@@ -514,7 +514,7 @@ def set_layout_context(request, context, uid, gid):
 			layout_to_view = get_default_layout(uid, gid)
 			context['default_layout'] = layout_to_view
 
-		# Set layout name to add to the query term 
+		# Set layout name to add to the query term
 		context['layout_name'] = request.GET.get('layout')
 	else:
 		# If there is no layout specified, simply return the default layout
@@ -522,7 +522,7 @@ def set_layout_context(request, context, uid, gid):
 		layout_to_view = get_default_layout(uid, gid)
 		context['default_layout'] = get_default_layout_id(uid, gid)
 		context['layout_name'] = get_default_layout_name(uid, gid)
-		
+
 	context['default_layout_name'] = get_default_layout_name(uid, gid)
 	# send layout information to the front-end
 
@@ -614,7 +614,7 @@ def get_all_info_for_graph(uid, gid):
 def get_graphs_for_view_type(context, view_type, uid, request):
 	'''
 		Gets the graphs that are associated with a certain view from the user
-		
+
 		:param context: Dictionary containing values to pass to front-end
 		:param view_type: Type of view to render (my graphs, shared, public)
 		:param uid: Owner of the graph
@@ -644,7 +644,7 @@ def get_graphs_for_view_type(context, view_type, uid, request):
 
 	# Get ordered terms for query (ordered being if they want to sort table by its columns)
 	order_by = request.GET.get('order')
-	
+
 	# Extract tags from query
 	if tag_terms and len(tag_terms) > 0:
 		cleaned_tags = tag_terms.split(',')
@@ -703,11 +703,11 @@ def get_graphs_for_view_type(context, view_type, uid, request):
 		# Remove last comma
 		client_side_search = client_side_search[:len(client_side_search) - 1]
 
-		# All context variables will be recognized in the front end 
+		# All context variables will be recognized in the front end
 		# See (See graphs/templates/graphs/graphs.html)
 		context['search_word'] = client_side_search
 
-		# Type of search (partial or exact) -> Used to fill in radio button 
+		# Type of search (partial or exact) -> Used to fill in radio button
 		context['search_type'] = search_type
 
 		# Search terms (Used to append URL to view types: My Graphs, Shared, Public)
@@ -721,7 +721,7 @@ def get_graphs_for_view_type(context, view_type, uid, request):
 	# shared_graphs represents all matching graphs which are shared with me
 	# public graphs represent all matching graphs available to everyone
 
-	# In order to produce the number of graphs returned that match the query 
+	# In order to produce the number of graphs returned that match the query
 	# (for the My Graphs, Shared, and Public buttons), I am also retrieving the len
 	# of matched graphs for each view_type.  This feature was requesed by Murali
 
@@ -759,8 +759,8 @@ def get_graphs_for_view_type(context, view_type, uid, request):
 	else:
 		# By default, all graphs are ordered via descending modified date (as per Anna's request)
 		context['graph_list'] = order_information("modified_descending", search_terms, context['graph_list'])
-	
-	return context	
+
+	return context
 
 def setDefaultLayout(layoutName, graph_id, graph_owner):
 	'''
@@ -794,7 +794,7 @@ def setDefaultLayout(layoutName, graph_id, graph_owner):
 		return None
 	except NoResultFound:
 		db_session.close()
-		return "Can't set default layout of layout that doesn't exist or you can't access."	
+		return "Can't set default layout of layout that doesn't exist or you can't access."
 
 def removeDefaultLayout(layoutName, graph_id, graph_owner):
 	'''
@@ -820,7 +820,7 @@ def removeDefaultLayout(layoutName, graph_id, graph_owner):
 		return "Layout does not exist for this graph!"
 
 	try:
-		# If the default layout is deleted, update 
+		# If the default layout is deleted, update
 		# graph so that it has no default layout
 		if layout.layout_name == layoutName:
 			graph.default_layout_id = None
@@ -877,10 +877,10 @@ def order_information(order_term, search_terms, graphs_list):
 def view_graphs(uid, search_type, search_terms, tag_terms, view_type):
 	'''
 		Gets the graphs that are associated with a certain view from the user
-		
+
 		:param uid: Owner of the graph
 		:param search_type: Type of search (partial or full)
-		:param search_terms: Criteria that to filter graphs 
+		:param search_terms: Criteria that to filter graphs
 		:param tag_terms: Only display graphs with these tags
 		:return context: Dictionary containing values to pass to front-end
 	'''
@@ -891,7 +891,7 @@ def view_graphs(uid, search_type, search_terms, tag_terms, view_type):
 
 		# Get all graphs that contain all the search terms
 		search_result_graphs = search_result(uid, search_type, search_terms, view_type)
-		
+
 		# Get all graphs that contain all the tag terms
 		tag_result_graphs = tag_result(uid, tag_terms, view_type)
 
@@ -914,7 +914,7 @@ def view_graphs(uid, search_type, search_terms, tag_terms, view_type):
 	# Just display the graphs
 	else:
 		return view_graphs_of_type(view_type, uid)
-		
+
 def tag_result(uid, tag_terms, view_type):
 	'''
 		Gets all graphs that contain the specified tags for a user and a view_type.
@@ -926,7 +926,7 @@ def tag_result(uid, tag_terms, view_type):
 	'''
 	if len(tag_terms) > 0:
 		# Place holder that stores all the graphs
-		initial_graphs_with_tags = []	
+		initial_graphs_with_tags = []
 
 		# Create database connection
 		db_session = data_connection.new_session()
@@ -970,10 +970,10 @@ def tag_result(uid, tag_terms, view_type):
 			# Graph matches all search terms
 			if graph_repititions[graph] == len(tag_terms):
 
-				# If we haven't seen this graph yet 
+				# If we haven't seen this graph yet
 				if graph not in graph_mappings:
 					graph_mappings[graph] = graph
-				
+
 		# Go through all the graphs and insert tags for the graphs that match all search terms
 		return graph_mappings.values()
 
@@ -1008,7 +1008,7 @@ def search_result(uid, search_type, search_terms, view_type):
 		# Get connection to database
 		data_session = data_connection.new_session()
 
-		# Go through each search term, aggregating 
+		# Go through each search term, aggregating
 		# all graphs that match the specific search term
 		for search_word in search_terms:
 			# matched_graphs contains a list of all graphs that match the specific search term
@@ -1031,7 +1031,7 @@ def search_result(uid, search_type, search_terms, view_type):
 			matched_graphs = combine_similar_graphs(matched_graphs)
 
 			# Add condensed tuples to list of graphs matched
-			initial_graphs_from_search += matched_graphs 
+			initial_graphs_from_search += matched_graphs
 
 		# Go through and count the list of occurrences of matched graph
 		graph_repititions = defaultdict(int)
@@ -1057,7 +1057,7 @@ def search_result(uid, search_type, search_terms, view_type):
 			# Graph matches all search terms
 			if graph_repititions[key] == len(search_terms):
 
-				# If we haven't seen this graph yet 
+				# If we haven't seen this graph yet
 				if key not in graph_mappings:
 					graph_mappings[key] = tuple(graph_tuple)
 				else:
@@ -1140,7 +1140,7 @@ def combine_similar_graphs(matched_graphs):
 				graph_entry[key] = tuple(cur_graph_entry)
 
 		# If graph contains a term that is in the id of the graph
-		else: 
+		else:
 			key = graph.graph_id + graph.user_id
 			# If graph has not yet been encountered, append tuple to list of graphs encountered
 			if key not in graph_entry:
@@ -1153,7 +1153,7 @@ def combine_similar_graphs(matched_graphs):
 	return graph_entry.values()
 
 def find_all_graphs_containing_search_word(uid, search_type, search_word, view_type, db_session):
-	'''	
+	'''
 		Finds graphs that have the matching graph name.
 
 		:param uid: Owner of the graph
@@ -1232,28 +1232,28 @@ def find_all_graphs_containing_edges(uid, search_type, search_word, view_type, d
 
 		# Get all (head) nodes that contain a label matching search_word
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.label == head_node).all()
-		
+
 		# Get all (tail) nodes that contain a label matching search_word
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.label == tail_node).all()
 
-		# Get all (head) nodes that contain a node id matching search_word 
+		# Get all (head) nodes that contain a node id matching search_word
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id == head_node).all()
 
-		# Get all (tail) nodes that contain a node id matched search_word 
+		# Get all (tail) nodes that contain a node id matched search_word
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id == tail_node).all()
-		
+
 	elif search_type == "partial_search":
 
 		# Get all (head) nodes that contain a partially matching label
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.label.like("%" + head_node + "%")).all()
-		
+
 		# Get all (tail) nodes that contain a label partially matching label
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.label.like("%" + tail_node + "%")).all()
 
-		# Get all (head) nodes that contain a node id partially matching search_word 
+		# Get all (head) nodes that contain a node id partially matching search_word
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id.like("%" + head_node + "%")).all()
-		
-		# Get all (head) nodes that contain a node id partially matching search_word 
+
+		# Get all (head) nodes that contain a node id partially matching search_word
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id.like("%" + tail_node + "%")).all()
 
 	# Remove all the duplicates
@@ -1322,16 +1322,16 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 		if search_type == "partial_search":
 			# Get all partially matching nodes containing the label
 			initial_graphs_matching_nodes += db_session.query(models.Node.graph_id, models.Node.node_id, models.Node.label, models.Node.modified, models.Node.user_id).filter(models.Node.label.like("%" + search_word + "%")).filter(models.Node.user_id == uid).all()
-			
+
 			# Get all partially matching nodes containing the node id
 			initial_graphs_matching_nodes += db_session.query(models.Node.graph_id, models.Node.node_id, models.Node.label, models.Node.modified, models.Node.user_id).filter(models.Node.node_id.like("%" + search_word + "%")).filter(models.Node.user_id == uid).all()
 		else:
 			# Get all partially matching nodes containing the label
 			initial_graphs_matching_nodes += db_session.query(models.Node.graph_id, models.Node.node_id, models.Node.label, models.Node.modified, models.Node.user_id).filter(models.Node.label == search_word).filter(models.Node.user_id == uid).all()
-			
+
 			# Get all partially matching nodes containing the node id
 			initial_graphs_matching_nodes += db_session.query(models.Node.graph_id, models.Node.node_id, models.Node.label, models.Node.modified, models.Node.user_id).filter(models.Node.node_id == search_word).filter(models.Node.user_id == uid).all()
-	
+
 	# Shared graphs
 	elif view_type == "shared":
 		# Get all the groups that a user is a member of
@@ -1360,7 +1360,7 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 			# Collect all graphs that are shared with user and matches terms
 			final_graphs = []
 
-			# Go through all matched graphs to see which graphs 
+			# Go through all matched graphs to see which graphs
 			# are also shared with user and take the intersection
 			for matched in all_matched_node_graphs:
 				search_graph = (matched.graph_id, matched.user_id)
@@ -1370,7 +1370,7 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 			# Get all graphs that contain a partially matched node and user does not own (since it's shared)
 			all_matched_node_graphs = db_session.query(models.Node.graph_id, models.Node.node_id, models.Node.label, models.Node.modified, models.Node.user_id).filter(models.Node.node_id.like("%" + search_word + "%")).all()
 
-			# Go through all matched graphs to see which graphs 
+			# Go through all matched graphs to see which graphs
 			# are also shared with user and take the intersection
 			for matched in all_matched_node_graphs:
 				search_graph = (matched.graph_id, matched.user_id)
@@ -1385,7 +1385,7 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 			# Collect all graphs that are shared with user and matches terms
 			final_graphs = []
 
-			# Go through all matched graphs to see which graphs 
+			# Go through all matched graphs to see which graphs
 			# are also shared with user and take the intersection
 			for matched in all_matched_node_graphs:
 				search_graph = (matched.graph_id, matched.user_id)
@@ -1395,7 +1395,7 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 			# Get all graphs that contain a partially matched node and user does not own (since it's shared)
 			all_matched_node_graphs = db_session.query(models.Node.graph_id, models.Node.node_id, models.Node.label, models.Node.modified, models.Node.user_id).filter(models.Node.node_id == search_word).all()
 
-			# Go through all matched graphs to see which graphs 
+			# Go through all matched graphs to see which graphs
 			# are also shared with user and take the intersection
 			for matched in all_matched_node_graphs:
 				search_graph = (matched.graph_id, matched.user_id)
@@ -1467,7 +1467,7 @@ def uploadCyjsFile(username, graphJSON, title):
 			# Copy over ID
 			tempNode['data']['id'] = node['data']['id']
 
-			# Change color property to background color 
+			# Change color property to background color
 			if 'node_fillColor' in node['data'] and len(node['data']['node_fillColor']) > 0:
 				# tempNode['data']['background_color'] = rgb_to_hex(node['data']['node_fillColor'])
 				tempNode['data']['background_color'] = node['data']['node_fillColor']
@@ -1520,21 +1520,21 @@ def uploadCyjsFile(username, graphJSON, title):
 			# Create a unique user and insert graph for that name
 			public_user_id = "Public_User_" + str(uuid.uuid4()) + '@temp.com'
 			public_user_id = public_user_id.replace('-', '_')
-			
+
 			first_request = create_public_user(public_user_id)
 
 			if first_request == None:
 				result = insert_graph(public_user_id, title, json.dumps(parseJson))
 
-				if result == None: 
+				if result == None:
 					return {"Success": URL_PATH + "graphs/" + public_user_id + "/" + title}
-				else: 
+				else:
 					return {"Error": result}
 			else:
 				return {"Error": result}
 	except Exception as ex:
 		return {"Error": "Seems to be an error with " + ex + " property."}
-		
+
 def uploadJSONFile(username, graphJSON, title):
 	'''
 		Uploads JSON file to GraphSpace via /upload.
@@ -1545,7 +1545,7 @@ def uploadJSONFile(username, graphJSON, title):
 
 	'''
 
-	try: 
+	try:
 		# Loads JSON format
 		parseJson = json.loads(graphJSON)
 
@@ -1560,7 +1560,7 @@ def uploadJSONFile(username, graphJSON, title):
 		title = title or parseJson['metadata']['name']
 
 		# Insert converted graph to GraphSpace and provide URL
-		# for logged in user	
+		# for logged in user
 		if username != None:
 			result = insert_graph(username, title, json.dumps(parseJson))
 			if result == None:
@@ -1571,14 +1571,14 @@ def uploadJSONFile(username, graphJSON, title):
 			# Create a unique user and insert graph for that name
 			public_user_id = "Public_User_" + str(uuid.uuid4()) + '@temp.com'
 			public_user_id = public_user_id.replace('-', '_')
-			
+
 			first_request = create_public_user(public_user_id)
 
 			if first_request == None:
 				result = insert_graph(public_user_id, title, json.dumps(parseJson))
-				if result == None: 
+				if result == None:
 					return {"Success": URL_PATH + "graphs/" + public_user_id + "/" + title}
-				else: 
+				else:
 					return {"Error": result}
 			else:
 				return {"Error": result}
@@ -1600,7 +1600,7 @@ def delete_30_day_old_anon_graphs():
 		db_session.close()
 
 def rgb_to_hex(rgb):
-	# Quick wrapper method to 
+	# Quick wrapper method to
 	# convert rgb values to hex values
 	rgbTuple = rgb.split(',')
 	rgbNum = []
@@ -1654,7 +1654,7 @@ def delete_public_user():
 
 	except NoResultFound:
 		db_session.close()
-		return None	
+		return None
 
 def find_edge(uid, gid, edge_to_find, search_type):
 	'''
@@ -1703,7 +1703,7 @@ def find_edge(uid, gid, edge_to_find, search_type):
 					except NoResultFound:
 						print "No matching edges"
 
-	else:	
+	else:
 
 		# Find node id's that are being searched for (source and target nodes)
 		head_nodes = find_node(uid, gid, head_node, 'full_search')
@@ -1796,7 +1796,7 @@ def find_node(uid, gid, node_to_find, search_type):
 		return id_list
 	except NoResultFound:
 		db_session.close()
-		return []	
+		return []
 
 def intersect(a, b):
      return list(set(a) & set(b))
@@ -1845,7 +1845,7 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 	validationErrors = validate_json(graph_json)
 
 	if validationErrors != None:
-		return validationErrors 
+		return validationErrors
 
 	# Get the current time
 	curTime = datetime.now()
@@ -1858,10 +1858,10 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 		graphJson = json.loads(convert_json(graph_json))
 
 	# Attach ID's to each edge for traversing the element
-	graphJson = assign_edge_ids(graphJson)	
+	graphJson = assign_edge_ids(graphJson)
 
 	nodes = graphJson['graph']['nodes']
-	
+
 	# If we're not passed in any time values, use the current time as timestamps
 	if modified == None and created == None:
 		modified = curTime
@@ -1890,7 +1890,7 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 	insert_data_for_graph(graphJson, graphname, username, tags, nodes, curTime, 0, db_session)
 
 	db_session.close()
-	# If everything works, return Nothing 
+	# If everything works, return Nothing
 	return None
 
 def insert_data_for_graph(graphJson, graphname, username, tags, nodes, modified, public, db_session):
@@ -1936,23 +1936,27 @@ def insert_data_for_graph(graphJson, graphname, username, tags, nodes, modified,
 
 		# Make edge undirected if it doesn't have target_arrow_shape attribute
 		if 'target_arrow_shape' not in edge['data']:
-			edge['data']['target_arrow_shape'] = "none"	
+			edge['data']['target_arrow_shape'] = "none"
 			is_directed = 0
+
+		# To make sure int and floats are also accepted as source and target nodes of an edge
+		source_node = str(edge['data']['source'])
+		target_node = str(edge['data']['target'])
 
 		# Keep track of all the duplicate edges
 		# If there are two duplicate edges, append a counter and store it as an ID
-		if edge['data']['source'] + '-' + edge['data']['target'] in dupEdges:
+		if (source_node + '-' + target_node) in dupEdges:
 			rand += 1
 			if 'id' not in edge['data']:
-				edge['data']['id'] = edge['data']['source'] + '-' + edge['data']['target'] + rand
+				edge['data']['id'] = source_node + '-' + target_node + rand
 
 
 		# If this is first time we've seen an edge, simply get its ID without the counter
 		else:
 			if 'id' not in edge['data']:
-				edge['data']['id'] = edge['data']['source'] + '-' + edge['data']['target']
+				edge['data']['id'] = source_node + '-' + target_node
 
-		dupEdges.append(edge['data']['source'] + '-' + edge['data']['target'])
+		dupEdges.append(source_node + '-' + target_node)
 
 		# TRICKY NOTE: An edge's ID is used as the label property
 		# The reason is because edge uses an 'id' column as the primary key.
@@ -1974,7 +1978,7 @@ def insert_data_for_graph(graphJson, graphname, username, tags, nodes, modified,
 
 	# Go through all nodes in JSON and add to node table
 	for node in nodes:
-		# Used for backwards-compatibility since some JSON have label 
+		# Used for backwards-compatibility since some JSON have label
 		# but new CytoscapeJS uses the content property
 		if 'label' in node['data']:
 			node['data']['content'] = node['data']['label']
@@ -1989,11 +1993,11 @@ def insert_data_for_graph(graphJson, graphname, username, tags, nodes, modified,
 
 		db_session.add(new_node)
 		db_session.commit()
-			
+
 def update_graph(username, graphname, graph_json):
 	'''
 		Updates the JSON for a graph.
-	
+
 		:param username: Email of user in GraphSpace
 		:param graphname: Name of graph to insert
 		:param graph_json: JSON of graph
@@ -2087,7 +2091,7 @@ def delete_graph(username, graphname):
 	db_session = data_connection.new_session()
 
 	try:
-		# Delete graph 
+		# Delete graph
 		db_session.delete(graph)
 
 		db_session.commit()
@@ -2128,7 +2132,7 @@ def delete_graph(username, graphname):
 	except Exception as ex:
 		print ex
 		db_session.close()
-		return	
+		return
 
 def get_all_graphs_for_user(username):
 	'''
@@ -2171,12 +2175,12 @@ def get_graphs_in_group(group_id, group_owner):
 	try:
 		# Gets all the graphs in the group
 		graphs_in_group = db_session.query(models.GroupToGraph.graph_id, models.GroupToGraph.user_id).filter(models.GroupToGraph.group_id == group_id).filter(models.GroupToGraph.group_owner == group_owner).all()
-		
+
 		db_session.close()
 		return graphs_in_group
 	except NoResultFound:
 		db_session.close()
-		return []	
+		return []
 
 def get_groups_of_user(user_id):
 	'''
@@ -2199,7 +2203,7 @@ def get_groups_of_user(user_id):
 		return complete_group_information
 	except NoResultFound:
 		db_session.close()
-		return None	
+		return None
 
 def get_cleaned_group_data(data, db_session):
 	'''
@@ -2268,7 +2272,7 @@ def change_description(username, groupId, groupOwner, desc):
 		Changes description of group.
 
 		:param username: person who is requesting the change
-		:param groupId: ID of group to change description 
+		:param groupId: ID of group to change description
 		:param groupOwner: Owner of the group
 		:param desc: Description to change to
 		:return Error: <error>
@@ -2295,7 +2299,7 @@ def change_description(username, groupId, groupOwner, desc):
 def get_group_by_id(groupOwner, groupId):
 	'''
 		Gets a group information by group id ( REST API option).
-		
+
 		:param groupOwner: Owner of the group
 		:param groupId: ID of group to be searched for
 		:return Group: [Information about group (see REST API in Help section)]
@@ -2330,7 +2334,7 @@ def get_group_by_id(groupOwner, groupId):
 def get_group(group_owner, groupId):
 	'''
 		Gets all information about a certain group (used for groups page exclusively).
-        
+
         :param group_owner: Owner of group to get from server
 		:param groupId: ID of groupId
 		:return Group: [information of group]
@@ -2369,7 +2373,7 @@ def get_group_members(groupOwner, groupId):
 	'''
 		Get all members of a group.
 
-		:param groupOwner: Group Owner 
+		:param groupOwner: Group Owner
 		:param groupId: Group ID
 		:return Members: [Members of group]
 	'''
@@ -2408,7 +2412,7 @@ def can_see_shared_graph(logged_in_user, graph_owner, graphname):
 	# If they are, then they are allowed to see the graph
 	if len(groups) > 0:
 		for group in groups:
-			
+
 			# If logged in user owns a group that the graph is shared with
 			if logged_in_user == group.owner_id:
 				return True
@@ -2446,7 +2450,7 @@ def remove_group(owner, group):
 	db_session.delete(group_get)
 
 	try:
-		# Get group to graph 
+		# Get group to graph
 		group_to_graph = db_session.query(models.GroupToGraph).filter(models.GroupToGraph.group_id == group).filter(models.GroupToGraph.group_owner == owner).all()
 
 		# Delete entry from group to graph
@@ -2456,7 +2460,7 @@ def remove_group(owner, group):
 		print 'nothing found'
 
 	try:
-		# Get group to user 
+		# Get group to user
 		group_to_user = db_session.query(models.GroupToUser).filter(models.GroupToUser.group_id == group).filter(models.GroupToUser.group_owner == owner).all()
 
 		# Delete entry from group to user
@@ -2533,7 +2537,7 @@ def groups_for_user(username):
 	try:
 		# Get all groups that the user owns
 		owned_groups = db_session.query(models.Group).filter(models.Group.owner_id == username).all()
-	
+
 		# Appeend tuple that describes ID of group and the owner of the group
 		for group in owned_groups:
 			cleaned_group_data.append({"groupId": group.group_id, "group_owner": group.owner_id})
@@ -2574,7 +2578,7 @@ def search_result_for_graphs_in_group(uid, search_type, search_terms, db_session
 		# Get connection to database
 		data_session = data_connection.new_session()
 
-		# Go through each search term, aggregating 
+		# Go through each search term, aggregating
 		# all graphs that match the specific search term
 		for search_word in search_terms:
 			# matched_graphs contains a list of all graphs that match the specific search term
@@ -2597,7 +2601,7 @@ def search_result_for_graphs_in_group(uid, search_type, search_terms, db_session
 			matched_graphs = combine_similar_graphs(matched_graphs)
 
 			# Add condensed tuples to list of graphs matched
-			initial_graphs_from_search += matched_graphs 
+			initial_graphs_from_search += matched_graphs
 
 		# Go through and count the list of occurrences of matched graph
 		graph_repititions = defaultdict(int)
@@ -2623,7 +2627,7 @@ def search_result_for_graphs_in_group(uid, search_type, search_terms, db_session
 			# Graph matches all search terms
 			if graph_repititions[key] == len(search_terms):
 
-				# If we haven't seen this graph yet 
+				# If we haven't seen this graph yet
 				if key not in graph_mappings:
 					graph_mappings[key] = tuple(graph_tuple)
 				else:
@@ -2680,28 +2684,28 @@ def find_all_graphs_containing_edges_in_group(uid, search_type, search_word, db_
 
 		# Get all (head) nodes that contain a label matching search_word
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.label == head_node).all()
-		
+
 		# Get all (tail) nodes that contain a label matching search_word
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.label == tail_node).all()
 
-		# Get all (head) nodes that contain a node id matching search_word 
+		# Get all (head) nodes that contain a node id matching search_word
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id == head_node).all()
 
-		# Get all (tail) nodes that contain a node id matched search_word 
+		# Get all (tail) nodes that contain a node id matched search_word
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id == tail_node).all()
-		
+
 	elif search_type == "partial_search":
 
 		# Get all (head) nodes that contain a partially matching label
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.label.like("%" + head_node + "%")).all()
-		
+
 		# Get all (tail) nodes that contain a label partially matching label
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.label.like("%" + tail_node + "%")).all()
 
-		# Get all (head) nodes that contain a node id partially matching search_word 
+		# Get all (head) nodes that contain a node id partially matching search_word
 		head_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id.like("%" + head_node + "%")).all()
-		
-		# Get all (head) nodes that contain a node id partially matching search_word 
+
+		# Get all (head) nodes that contain a node id partially matching search_word
 		tail_nodes += db_session.query(models.Node.node_id).filter(models.Node.node_id.like("%" + tail_node + "%")).all()
 
 	# Remove all the duplicates
@@ -2723,7 +2727,7 @@ def find_all_graphs_containing_edges_in_group(uid, search_type, search_word, db_
 			for j in xrange(len(tail_nodes)):
 				h_node =  head_nodes[i][0]
 				t_node =  tail_nodes[j][0]
-				
+
 				# We make two queries because we want to have tail:head and head:tail search (to resolve undirected edges searching)
 				initial_graphs_matching_edges += db_session.query(models.Edge).filter(models.Edge.head_node_id == h_node).filter(models.Edge.tail_node_id == t_node).filter(models.Edge.graph_id == models.GroupToGraph.graph_id).filter(models.Edge.user_id == uid).filter(models.GroupToGraph.user_id == models.Edge.user_id).filter(models.GroupToGraph.group_id == groupId).filter(models.GroupToGraph.group_owner == groupOwner).all()
 				initial_graphs_matching_edges += db_session.query(models.Edge).filter(models.Edge.head_node_id == t_node).filter(models.Edge.tail_node_id == h_node).filter(models.Edge.graph_id == models.GroupToGraph.graph_id).filter(models.Edge.user_id == uid).filter(models.GroupToGraph.user_id == models.Edge.user_id).filter(models.GroupToGraph.group_id == groupId).filter(models.GroupToGraph.group_owner == groupOwner).all()
@@ -2767,7 +2771,7 @@ def find_all_graphs_containing_nodes_in_group(uid, search_type, search_word, db_
 	else:
 		# Get all nodes that have an exact matching label
 		node_data = db_session.query(models.Node).filter(models.Node.label == search_word).filter(models.Node.graph_id == models.GroupToGraph.graph_id).filter(models.GroupToGraph.user_id == models.Node.user_id).filter(models.GroupToGraph.group_id == groupId).filter(models.GroupToGraph.group_owner == groupOwner).all()
-	
+
 		# Get all nodes that have an exact matching node id
 		node_data += db_session.query(models.Node).filter(models.Node.node_id == search_word).filter(models.Node.graph_id == models.GroupToGraph.graph_id).filter(models.GroupToGraph.user_id == models.Node.user_id).filter(models.GroupToGraph.group_id == groupId).filter(models.GroupToGraph.group_owner == groupOwner).all()
 
@@ -2865,10 +2869,10 @@ def tag_result_for_graphs_in_group(groupOwner, groupId, tag_terms, db_session):
 			# Graph matches all search terms
 			if graph_repititions[graph] == len(tag_terms):
 
-				# If we haven't seen this graph yet 
+				# If we haven't seen this graph yet
 				if graph not in graph_mappings:
 					graph_mappings[graph] = graph_tuple
-				
+
 		# Go through all the graphs and insert tags for the graphs that match all search terms
 		return graph_mappings.values()
 	else:
@@ -2896,7 +2900,7 @@ def get_all_graphs_for_group(uid, groupOwner, groupId, request):
 	elif 'full_search' in request.GET:
 		search_type = 'full_search'
 
-	# Check to see if query has search terms, tag terms, or 
+	# Check to see if query has search terms, tag terms, or
 	# user wants to sort graphs
 	search_terms = request.GET.get(search_type)
 	tag_terms = request.GET.get('tags') or request.GET.get('tag')
@@ -2935,7 +2939,7 @@ def get_all_graphs_for_group(uid, groupOwner, groupId, request):
 
 		# Get all graphs that contain all the search terms
 		search_result_graphs = search_result_for_graphs_in_group(uid, search_type, cleaned_search_terms, db_session, groupId, groupOwner)
-		
+
 		# Get all graphs that contain all the tag terms
 		tag_result_graphs = tag_result_for_graphs_in_group(groupOwner, groupId, cleaned_tags, db_session)
 
@@ -3112,9 +3116,9 @@ def remove_user_through_ui(username, owner, group):
 def share_graph_with_group(owner, graph, groupId, groupOwner):
 	'''
 		Shares a graph with group.
-		
+
 		:param owner: Owner of group
-		:param graph: Graph to share 
+		:param graph: Graph to share
 		:param groupId: Group ID
 		:param groupOwner: Group Owner
 		:return <status>
@@ -3163,7 +3167,7 @@ def unshare_graph_with_group(owner, graph, groupId, groupOwner):
 		Graph to unshare with group.
 
 		:param owner: Owner of group
-		:param graph: Graph to unshare 
+		:param graph: Graph to unshare
 		:param groupId: Group ID
 		:param groupOwner: Group Owner
 		:return <status>
@@ -3347,7 +3351,7 @@ def changeLayoutName(uid, gid, old_layout_name, new_layout_name, loggedIn):
 	if new_layout != None:
 		new_layout.layout_name = new_layout_name
 		db_session.commit()
-		
+
 	db_session.close()
 	return None
 
@@ -3365,13 +3369,13 @@ def makeLayoutPublic(uid, gid, public_layout, layout_owner):
 
 	# Get layouts to make public
 	layout = db_session.query(models.Layout).filter(models.Layout.layout_name == public_layout).filter(models.Layout.user_id == uid).filter(models.Layout.graph_id == gid).filter(models.Layout.owner_id == layout_owner).first()
-	
+
 	# If layout exists, make it public
 	if layout != None:
 		if layout.public == 1:
 			layout.public = 0
 
-			# Get graph 
+			# Get graph
 			graph = db_session.query(models.Graph).filter(models.Graph.graph_id == gid).filter(models.Graph.user_id == uid).first()
 
 			# If layout isn't public, remove it as default id
@@ -3433,7 +3437,7 @@ def deleteLayout(uid, gid, layoutToDelete, layout_owner):
 		if layout == None:
 			return "Layout does not exist!"
 
-		# Get graph which may contain a layout 
+		# Get graph which may contain a layout
 		graph = db_session.query(models.Graph).filter(models.Graph.graph_id == gid).filter(models.Graph.user_id == uid).first()
 
 		if graph == None:
@@ -3474,7 +3478,7 @@ def get_layout_for_graph(layout_name, layout_owner, graph_id, graph_owner, logge
 		# If user is not a member, don't display layout
 		if user_is_member == None:
 			return None
-	
+
 	# Get layout for graph if it exists
 	layout = db_session.query(models.Layout).filter(models.Layout.layout_name == layout_name).filter(models.Layout.graph_id == graph_id).filter(models.Layout.user_id == graph_owner).filter(models.Layout.owner_id == layout_owner).first()
 
@@ -3485,7 +3489,7 @@ def get_layout_for_graph(layout_name, layout_owner, graph_id, graph_owner, logge
 		db_session.close()
 		return cytoscapePresetLayout(json.loads(layout.json))
 
-	
+
 
 def cytoscapePresetLayout(csWebJson):
 	'''
@@ -3522,7 +3526,7 @@ def get_all_layouts_for_graph(uid, gid):
 	db_session = data_connection.new_session()
 
 	try:
-		# Get layouts for graph 
+		# Get layouts for graph
 		layouts = db_session.query(models.Layout).filter(models.Layout.owner_id == owner).filter(models.Layout.graph_id == gid).all()
 
 		# Get rid of unicode
@@ -3535,12 +3539,12 @@ def get_all_layouts_for_graph(uid, gid):
 
 	except NoResultFound:
 		db_session.close()
-		return None	
+		return None
 
 def share_layout_with_all_groups_of_user(owner, gid, layoutId, layout_owner):
 	'''
 		Shares a layout with all the groups that owner of a graph is a part of.
-		
+
 		:param owner: Owner of graph
 		:param gid: Name of graph
 		:param layoutId: Layout of the graph
@@ -3574,11 +3578,11 @@ def share_layout_with_all_groups_of_user(owner, gid, layoutId, layout_owner):
 		if graph.default_layout_id == layout.layout_id:
 				graph.default_layout_id = None
 				db_session.commit()
-				
+
 	print graph.default_layout_id
 	db_session.commit()
 	db_session.close()
-	return None	
+	return None
 
 # Gets my layouts for a graph
 def get_my_layouts_for_graph(uid, gid, loggedIn):
@@ -3665,7 +3669,7 @@ def get_my_shared_layouts_for_graph(uid, gid, loggedIn):
 
 	try:
 		# In the database, we define unlisted as the parameter to determine if a certain
-		# layout is shared within all groups that the graph is shared with and 
+		# layout is shared within all groups that the graph is shared with and
 		# public to determine whether everyone is allowed access to the layout.
 		# If the graph is public, all shared layouts should be public as well, therefore
 		# we collect all shared and public layouts.
@@ -3772,7 +3776,7 @@ def get_all_tags_for_user(username):
 def get_all_tags_for_graph(graphname, username):
 	'''
 		Returns all of the tags for a specific graph.
-	
+
 		:param graphname: Name of graph to search for
 		:param username: Email of user in GraphSpace
 		:return Tags: [tags of graph]
@@ -3783,7 +3787,7 @@ def get_all_tags_for_graph(graphname, username):
 	try:
 		# Retrieves all tags that match a given graph
 		tag_list = db_session.query(models.GraphToTag.tag_id).distinct(models.GraphToTag.tag_id).filter(models.GraphToTag.user_id == username).filter(models.GraphToTag.graph_id == graphname).all()
-		
+
 		cleaned_tag_list = []
 
 		# Get string from unicode so that I can parse it easier
@@ -3810,11 +3814,11 @@ def change_graph_visibility_for_tag(isPublic, tagname, username):
 
 	try:
 		# Get all the graphs that user OWNS which contain the matched tags
-		# Note: Two people using same tag don't have to worry about their 
-		# graphs changing visiblity because we only change the visibility 
+		# Note: Two people using same tag don't have to worry about their
+		# graphs changing visiblity because we only change the visibility
 		# of the graph the person is making the request owns
 
-		# Go through all these graphs and change their public column. 
+		# Go through all these graphs and change their public column.
 		# This means that they are visible or private depending on the boolean bit
 		# associated in their public column (See Graph table)
 		graph_list = db_session.query(models.Graph).filter(models.GraphToTag.tag_id == tagname).filter(models.GraphToTag.user_id == username).filter(models.Graph.user_id == username).filter(models.Graph.graph_id == models.GraphToTag.graph_id).all()
@@ -3822,7 +3826,7 @@ def change_graph_visibility_for_tag(isPublic, tagname, username):
 		for graph in graph_list:
 			graph.public = isPublic
 
-		# Go through all these nodes for graphs and change their public column. 
+		# Go through all these nodes for graphs and change their public column.
 		# This means that they are visible or private depending on the boolean bit
 		# associated in their public column (See Graph table)
 		# NOTE: I had this originally, but is this even necessary?
@@ -3882,7 +3886,7 @@ def getGraphInfo(uid, gid):
 		:param uid: Owner of graph
 		:param gid: Graph Id
 
-		:return json, visibility, graph_id 
+		:return json, visibility, graph_id
 	'''
 
 	# Create connection with database
