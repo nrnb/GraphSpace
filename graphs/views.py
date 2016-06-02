@@ -78,8 +78,8 @@ def index(request):
 
     if request.method == 'POST' and db.need_to_reset_password(request.POST['user_id']) != None:
         context = {}
-        
-        # Forcibly clearing an existing user session (essentially logging user out) 
+
+        # Forcibly clearing an existing user session (essentially logging user out)
         request.session['uid'] = None
 
         # Email the user the link to reset their password
@@ -115,8 +115,8 @@ def logout(request):
 
     # Clears all context
     context = {}
-    
-    # Deletes the "Uid" key from the session 
+
+    # Deletes the "Uid" key from the session
     # currently being tracked by Django.
     try:
         del request.session['uid']
@@ -156,15 +156,15 @@ def graphs(request):
     '''
 
     return _graphs_page(request, 'my graphs')
-    
+
 def shared_graphs(request):
     '''
         Render the graphs/shared/ page showing all graphs that are shared with a user
 
         :param request: HTTP GET Request
     '''
-    
-    return _graphs_page(request, 'shared') 
+
+    return _graphs_page(request, 'shared')
 
 def public_graphs(request):
     '''
@@ -198,14 +198,14 @@ def _graphs_page(request, view_type):
     # The view_type refers to which category of graphs are being viewed (public, shared, my graphs)
     context['view_type'] = view_type
 
-    # If there is an error, display the error 
+    # If there is an error, display the error
     if context['Error']:
         return render(request, 'graphs/error.html', context)
 
     # Checks to see if a user is currently logged on
     uid = request.session['uid']
 
-    # Placeholder to keep track of 
+    # Placeholder to keep track of
     # whether we are partially searching or
     # exact searching
     search_type = None
@@ -222,7 +222,7 @@ def _graphs_page(request, view_type):
     # as well as any search queries and tag queries being performed
     context = db.get_graphs_for_view_type(context, view_type, uid, request)
 
-    # Holds the amount of times a tag appears for a graph 
+    # Holds the amount of times a tag appears for a graph
     all_tags = {}
 
     # Goes through all the graphs that are currently on a page
@@ -232,7 +232,7 @@ def _graphs_page(request, view_type):
             context.update(pager_context)
             for i in xrange(len(context['current_page'].object_list)):
                 graph = list(context['current_page'][i])
-                # Get all the tags associated with current graphs and populate the 
+                # Get all the tags associated with current graphs and populate the
                 # tags accordion
                 graph_tags = []
 
@@ -312,13 +312,13 @@ def upload_graph_through_ui(request):
 
             if str(request.FILES['graphname'])[-4:] != "json":
                 upload_json = None
-            
+
             if request.POST['email'] == 'Public User':
                 # assign random id generator
                 if upload_json:
                     result = db.uploadJSONFile(None, request.FILES['graphname'].read(), title_of_graph)
                 else:
-                    result = db.uploadCyjsFile(None, request.FILES['graphname'].read(), title_of_graph)
+                    result = db.uploadGPMLFile(None, request.FILES['graphname'].read(), title_of_graph)
 
                 if 'Error' not in result:
                     context = {'login_form': login_form, 'register_form': register_form, 'Success': result['Success']}
@@ -330,15 +330,15 @@ def upload_graph_through_ui(request):
                 if upload_json:
                     result = db.uploadJSONFile(request.POST['email'], request.FILES['graphname'].read(), title_of_graph)
                 else:
-                    result = db.uploadCyjsFile(request.POST['email'], request.FILES['graphname'].read(), title_of_graph)
+                    result = db.uploadGPMLFile(request.POST['email'], request.FILES['graphname'].read(), title_of_graph)
 
                 if 'Error' not in result:
                     context = {'login_form': login_form,  'uid': request.POST['email'], 'register_form': register_form, 'Success': result['Success']}
                 else:
                     context = {'login_form': login_form,  'uid': request.POST['email'], 'register_form': register_form, 'Error': result['Error']}
-                
+
                 return render(request, 'graphs/upload_graph.html', context)
-    else: 
+    else:
         context = login(request)
         return render(request, 'graphs/upload_graph.html', context)
 
@@ -357,7 +357,7 @@ def save_layout(request, uid, gid):
         result = db.save_layout(gid, graph_owner, request.POST['layout_name'], request.POST['loggedIn'], request.POST['points'], request.POST['public'], request.POST['unlisted'])
         if result == None:
             return HttpResponse(json.dumps(db.sendMessage(200, "Layout saved!")), content_type="application/json")
-        
+
         return HttpResponse(json.dumps(db.throwError(400, result)), content_type="application/json")
 
     else:
@@ -377,12 +377,12 @@ def update_layout(request, uid, gid):
     error = db.update_layout(gid, uid, request.POST['layout_name'], request.POST['loggedIn'], request.POST['points'], request.POST['public'], request.POST['unlisted'], request.POST['originalLayout'])
     if error == None:
         return HttpResponse(json.dumps(db.sendMessage(200, "Layout updated!")), content_type="application/json")
-    
+
     return HttpResponse(json.dumps(db.throwError(400, error)), content_type="application/json");
 
 def design_graph(request, uid, gid):
     '''
-        View a graph with CytoscapeJS along with tool pallete 
+        View a graph with CytoscapeJS along with tool pallete
         to help researcher layout of a graph.
 
         :param request: HTTP GET Request
@@ -405,7 +405,7 @@ def design_graph(request, uid, gid):
 
     #TODO: Create trigger to delete older tasks (3 days)
 
-    # if the graph is public, or if a user is a member 
+    # if the graph is public, or if a user is a member
     # of the group where this graph is shared
     # or if he owns this graph, then allow him to view it
     # otherwise do not allow it
@@ -423,7 +423,7 @@ def design_graph(request, uid, gid):
             graph_info = db.getGraphInfo(uid, gid)
             if graph_info != None:
                 graph_to_view =  graph_info
-            else: 
+            else:
                 context['Error'] = "Graph: " + gid + " does not exist for " + uid + ".  Upload a graph with this name into GraphSpace in order to see it."
                 return render(request, 'graphs/error.html', context)
         else:
@@ -476,7 +476,7 @@ def view_graph(request, uid, gid):
 
     #TODO: Create trigger to delete older tasks (3 days)
 
-    # if the graph is public, or if a user is a member 
+    # if the graph is public, or if a user is a member
     # of the group where this graph is shared
     # or if he owns this graph, then allow him to view it
     # otherwise do not allow it
@@ -494,7 +494,7 @@ def view_graph(request, uid, gid):
             graph_info = db.getGraphInfo(uid, gid)
             if graph_info != None:
                 graph_to_view =  graph_info
-            else: 
+            else:
                 context['Error'] = "Graph: " + gid + " does not exist for " + uid + ".  Upload a graph with this name into GraphSpace in order to see it."
                 return render(request, 'graphs/error.html', context)
         else:
@@ -592,7 +592,7 @@ def view_task(request, uid, gid):
 
     if graph_info != None:
         graph_to_view = graph_info
-    else: 
+    else:
         context['Error'] = "Task does not exist anymore!."
         return render(request, 'graphs/error.html', context)
 
@@ -662,7 +662,7 @@ def approve_task_expert(request):
             context['graph'] = db.retrieve_cytoscape_json(graph_info[0])
             context['remaining'] = all_tasks
             context['draw_graph'] = True
-            
+
             context["researcher_view"] = False
             context["approve_view"] = True
 
@@ -717,7 +717,7 @@ def approve_task(request, uid, gid):
 
     if graph_info != None:
         graph_to_view = graph_info
-    else: 
+    else:
         context['Error'] = "Task does not exist anymore!."
         return render(request, 'graphs/error.html', context)
 
@@ -733,7 +733,7 @@ def approve_task(request, uid, gid):
     context['graph'] = db.retrieve_cytoscape_json(graph_to_view[0])
 
     context['draw_graph'] = True
-    
+
     context["researcher_view"] = False
     context["approve_view"] = True
 
@@ -833,7 +833,7 @@ def retrieveTaskCode(request):
 
         if not gid or not uid:
             return HttpResponse(json.dumps(db.throwError(201, "Must include both graph_id and user_id in POST request.")), content_type="application/json")
-        
+
         surveyCode = db.retrieveTaskCode(uid, gid, worked_layout, numChanges, timeSpent, events, hit_id)
 
         if surveyCode == None:
@@ -905,8 +905,8 @@ def view_json(request, uid, gid):
         return HttpResponse(context['json'])
 
 def groups(request):
-    ''' 
-        Render the Owner Of page, showing groups that are owned by the user. 
+    '''
+        Render the Owner Of page, showing groups that are owned by the user.
 
         :param request: HTTP GET Request
 
@@ -923,7 +923,7 @@ def groups_member(request):
     return _groups_page(request, 'member')
 
 def all_groups(request):
-    ''' 
+    '''
         Render the All Groups page, showing all groups in the database.Admin feature [NOT CURRENTLY SUPPORTED].
 
         :param request: HTTP GET Request
@@ -1055,7 +1055,7 @@ def graphs_in_group(request, group_owner, group_id):
 
             search_type = None
             context['search_result'] = False
-            
+
             if 'partial_search' in request.GET:
                 search_type = 'partial_search'
             elif 'full_search' in request.GET:
@@ -1076,7 +1076,7 @@ def graphs_in_group(request, group_owner, group_id):
                 for i in xrange(len(cleaned_search_terms)):
                     context['search_word'] += cleaned_search_terms[i] + ','
 
-                if len(context['search_word']) > 0: 
+                if len(context['search_word']) > 0:
                     context['search_word'] = context['search_word'][:len(context['search_word']) - 1]
 
             # include the graph data to the context
@@ -1148,7 +1148,7 @@ def graphs_in_group(request, group_owner, group_id):
 def features(request):
     '''
         View features page.
-       
+
         :param request: HTTP GET Request
 
     '''
@@ -1273,10 +1273,10 @@ def register(request):
 
             if user_id == None:
                 return HttpResponse(json.dumps(db.throwError(400, "Email already exists!")), content_type="application/json");
-            
+
             # hash the password using bcrypt library
             hashed_pw = bcrypt.hashpw(
-                            register_form.cleaned_data['password'], 
+                            register_form.cleaned_data['password'],
                             bcrypt.gensalt())
             admin = 0
 
@@ -1355,7 +1355,7 @@ def resetLink(request):
         :return JSON: {"email": <user_id> | "Error": "Unrecognized ID"}
 
     '''
-    if request.method == 'GET': 
+    if request.method == 'GET':
         login_form = LoginForm()
         register_form = RegisterForm()
         code = request.GET.get('id')
@@ -1571,7 +1571,7 @@ def create_group(request, groupname):
     # If request is a POST request, add it to the server
     if request.method == 'POST':
         group_created = db.create_group(request.POST['username'], groupname)
-        
+
         # If there isn't already a group name that exists with the same name under account
         # add it to account
         if group_created != None:
@@ -1783,7 +1783,7 @@ def shareLayoutWithGroups(request):
 
         if db.can_see_shared_graph(current_user, uid, gid) == None:
             return HttpResponse(json.dumps(db.throwError(500, "Not allowed to do this operation!")), content_type="application/json")
-        
+
         if len(db.get_all_groups_for_this_graph(uid, gid)) == 0:
             return HttpResponse(json.dumps(db.throwError(400, "No groups to share with.  Either share this graph with a group first or make this graph public!")), content_type="application/json")
         else:
@@ -1791,7 +1791,7 @@ def shareLayoutWithGroups(request):
                 db.makeLayoutPublic(uid, gid, layoutId, layout_owner)
             else:
                 db.share_layout_with_all_groups_of_user(uid, gid, layoutId, layout_owner)
- 
+
             return HttpResponse(json.dumps(db.sendMessage(200, "Okay")), content_type="application/json")
     else:
         context = {"Error": "This route only accepts POST requests."}
@@ -1837,7 +1837,7 @@ def upload_graph(request, user_id, graphname):
 
         :param user_id: Id of the user
         :param graphname: Name of the graph
-        
+
         :return response: JSON Response: {"Success|Error": <message>}
 
     '''
@@ -1869,7 +1869,7 @@ def update_graph(request, user_id, graphname):
 
         :param user_id: Id of the user
         :param graphname: Name of the graph
-        
+
         :return response: JSON Response: {"Success|Error": <message>}
     '''
 
@@ -1900,7 +1900,7 @@ def retrieve_graph(request, user_id, graphname):
 
         :param user_id: Id of the user
         :param graphname: Name of the graph
-        
+
         :return response: JSON Response: {"Graph|Error": <message>}
     '''
     if request.method == 'POST':
@@ -1930,7 +1930,7 @@ def remove_graph(request, user_id, graphname):
 
         :param user_id: Id of the user
         :param graphname: Name of the graph
-        
+
         :return response: JSON Response: {"Success|Error": <message>}
 
     '''
@@ -1941,7 +1941,7 @@ def remove_graph(request, user_id, graphname):
 
         if db.get_valid_user(user_id, request.POST['password']) == None:
             return HttpResponse(json.dumps(db.userNotFoundError(), indent=4, separators=(',', ': ')), content_type="application/json")
-  
+
         jsonData = db.get_graph_json(user_id, graphname)
         if jsonData != None:
             db.delete_graph(user_id, graphname)
@@ -1986,10 +1986,10 @@ def make_graph_public(request, user_id, graphname):
         :return response: JSON Response: {"Success|Error": <message>}
     '''
     if request.method == 'POST':
-        
+
         if request.POST['username'] != user_id:
             return HttpResponse(json.dumps(db.usernameMismatchError(), indent=4, separators=(',', ': ')), content_type="application/json")
-        
+
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps(db.userNotFoundError(), indent=4, separators=(',', ': ')), content_type="application/json")
 
@@ -2016,7 +2016,7 @@ def make_graph_private(request, user_id, graphname):
 
         if request.POST['username'] != user_id:
             return HttpResponse(json.dumps(db.usernameMismatchError(), indent=4, separators=(',', ': ')), content_type="application/json")
-        
+
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps(db.userNotFoundError(), indent=4, separators=(',', ': ')), content_type="application/json")
 
@@ -2052,7 +2052,7 @@ def get_groups(request):
 
 def get_group(request, group_owner, groupname):
     '''
-        Get information about this group 
+        Get information about this group
 
         :param request: Incoming HTTP POST Request containing: {"username": <username>,"password": <password>}
         :param group_owner: Owner of group to get from server
@@ -2068,7 +2068,7 @@ def get_group(request, group_owner, groupname):
         data = db.get_group(group_owner, groupname)
         if data == None:
             return HttpResponse(json.dumps(db.throwError(404, "Group does not exist for this user!"), indent=4, separators=(',', ': ')), content_type="application/json")
-        
+
         return HttpResponse(json.dumps({"StatusCode": 200, "Groups": data}, indent=4, separators=(',', ': ')), content_type="application/json");
     else:
         context = {"Error": "This route only accepts POST requests."}
@@ -2077,7 +2077,7 @@ def get_group(request, group_owner, groupname):
 def delete_group(request, group_owner, groupname):
     '''
         Deletes a group from the server.
-        
+
         :param request: Incoming HTTP POST Request containing:
 
         {"username": <username>,"password": <password>}
@@ -2108,7 +2108,7 @@ def add_group(request, group_owner, groupname):
         Adds a group to the server.  If groupname already exists under a user account, then it will fail, otherwise a group name is created under the user's account.
 
         :param request: Incoming HTTP POST Request containing:
-        
+
         {"username": <username>,"password": <password>}
 
         :param group: Name of group to add to server
@@ -2120,7 +2120,7 @@ def add_group(request, group_owner, groupname):
 
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
             return HttpResponse(json.dumps(db.userNotFoundError(), indent=4, separators=(',', ': ')), content_type="application/json")
-        
+
         if group_owner == request.POST['username']:
             data = create_group(request, groupname)
             return HttpResponse(data)
@@ -2132,7 +2132,7 @@ def add_group(request, group_owner, groupname):
 
 def get_group_for_user(request, user_id):
     '''
-        Gets all groups that a user is a part of.  
+        Gets all groups that a user is a part of.
 
         :param request: Incoming HTTP POST Request containing:
 
@@ -2159,7 +2159,7 @@ def add_user_to_group(request, group_owner, groupname, user_id):
 
         :param request: Incoming HTTP POST Request containing:
 
-        {"username": <username>,"password": <password>}    
+        {"username": <username>,"password": <password>}
 
         :param groupname: Name of group to add user to
         :param user_id: Email of user to add to the group
@@ -2193,7 +2193,7 @@ def remove_user_from_group(request, group_owner, groupname, user_id):
         Removes user from group
 
         :param HTTP POST Request containing
-        {"username": <user_id>, "password": <password>}    
+        {"username": <user_id>, "password": <password>}
         :param groupname: Name of group to remove user from
         :param user_id: Email of user to remove
 
@@ -2310,11 +2310,11 @@ def get_all_graphs_for_tags(request, tag):
         Get all graphs associated with these tags
         :param HTTP POST Request containing
         {"username": <user_id>, "password": <password>}
-        :param tag: Name of tag to get graphs of 
+        :param tag: Name of tag to get graphs of
 
         :return JSON: {"Response": <message>}
     '''
-    
+
     if request.method == 'POST':
 
         if db.get_valid_user(request.POST['username'], request.POST['password']) == None:
@@ -2331,8 +2331,8 @@ def make_all_graphs_for_tag_public(request, username, tagname):
         Makes all graphs with this tag public
         :param HTTP POST Request containing
         {"username": <user_id>, "password": <password>}
-        :param username: Owner of graphs to change 
-        :param tag: Name of tag to get graphs of 
+        :param username: Owner of graphs to change
+        :param tag: Name of tag to get graphs of
 
         :return JSON: {"Response": <message>}
     '''
@@ -2359,8 +2359,8 @@ def make_all_graphs_for_tag_private(request, username, tagname):
         Makes all graphs with this tag private
         :param HTTP POST Request containing
         {"username": <user_id>, "password": <password>}
-        :param username: Owner of graphs to change 
-        :param tag: Name of tag to get graphs of 
+        :param username: Owner of graphs to change
+        :param tag: Name of tag to get graphs of
 
         :return JSON: {"Response": <message>}
     '''
@@ -2386,8 +2386,8 @@ def delete_all_graphs_for_tag(request, username, tagname):
         Makes all graphs with this tag private
         :param HTTP POST Request containing
         {"username": <user_id>, "password": <password>}
-        :param username: Owner of graphs to change 
-        :param tag: Name of tag to get graphs of 
+        :param username: Owner of graphs to change
+        :param tag: Name of tag to get graphs of
 
         :return JSON: {"Response": <message>}
     '''
