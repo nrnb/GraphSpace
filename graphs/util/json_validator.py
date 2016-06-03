@@ -178,7 +178,7 @@ def validate_node_properties(nodes):
 
     	if "id" not in node:
             if "TextLabel" in node:
-                pass
+                return ""
             else:
                 return "All nodes must have a unique ID.  Please verify that all nodes meet this requirement."
 

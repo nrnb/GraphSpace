@@ -1610,50 +1610,59 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 
 
 def uploadGPMLFile(username, graphJSON, title):
-	try:
-		# Create JSON stucture for GraphSpace recognized JSON
-		parseJson = {"graph": {"edges": [], "nodes": []}, "metadata": {}}
+	#try:
+	# Create JSON stucture for GraphSpace recognized JSON
+	parseJson = {"graph": {"edges": [], "nodes": []}, "metadata": {}}
 
-		import xml.etree.ElementTree as ET
-		tree = ET.parse(graphJSON)
-		root = tree.getroot()
-		GPML = '{http://pathvisio.org/GPML/2013a}'
-		temp2 = tree.findall(GPML+'DataNode')
-		d = []
-		for i, child in enumerate(temp2):
-		    temp = {}
-		    temp = child.attrib
-		    for details in child:
-		        temp.update(details.attrib)
-		    d.append(temp)
-		parseJson['graph']['edges'] = d
+	import xml.etree.ElementTree as ET
+	tree = ET.fromstring(graphJSON)
+	#root = tree.getroot()
+	GPML = '{http://pathvisio.org/GPML/2013a}'
+	temp2 = tree.findall(GPML+'DataNode')
+	d = []
+	for i, child in enumerate(temp2):
+	    temp = {}
+	    temp = child.attrib
+	    for details in child:
+	        temp.update(details.attrib)
+	    d.append(temp)
+	x = []
+	for i in d:
+		temp = {'data': i}
+		x.append(temp)
+	parseJson['graph']['nodes'] = x
 
-		# Insert converted graph to GraphSpace and provide URL
-		# for logged in user
-		if username != None:
-			result = insert_graph(username, title, json.dumps(parseJson))
+
+
+	title = d[1]['TextLabel']
+
+
+	# Insert converted graph to GraphSpace and provide URL
+	# for logged in user
+	if username != None:
+		result = insert_graph(username, title, json.dumps(parseJson))
+		if result == None:
+			return {"Success": URL_PATH + "graphs/" + username + "/" + title}
+		else:
+			return {"Error": result}
+	else:
+		# Create a unique user and insert graph for that name
+		public_user_id = "Public_User_" + str(uuid.uuid4()) + '@temp.com'
+		public_user_id = public_user_id.replace('-', '_')
+
+		first_request = create_public_user(public_user_id)
+
+		if first_request == None:
+			result = insert_graph(public_user_id, title, json.dumps(parseJson))
+
 			if result == None:
-				return {"Success": URL_PATH + "graphs/" + username + "/" + title}
+				return {"Success": URL_PATH + "graphs/" + public_user_id + "/" + title}
 			else:
 				return {"Error": result}
 		else:
-			# Create a unique user and insert graph for that name
-			public_user_id = "Public_User_" + str(uuid.uuid4()) + '@temp.com'
-			public_user_id = public_user_id.replace('-', '_')
-
-			first_request = create_public_user(public_user_id)
-
-			if first_request == None:
-				result = insert_graph(public_user_id, title, json.dumps(parseJson))
-
-				if result == None:
-					return {"Success": URL_PATH + "graphs/" + public_user_id + "/" + title}
-				else:
-					return {"Error": result}
-			else:
-				return {"Error": result}
-	except Exception as ex:
-		return {"Error": "Seems to be an error with " + ex + " property."}
+			return {"Error": result}
+	#except Exception as ex:
+	#	return {"Error": "Seems to be an error with " + str(ex) + " property."}
 
 
 
@@ -2063,7 +2072,7 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 
 	# Check to see if graph already exists
 	graph_exists = get_graph(username, graphname)
-
+	print "pp"
 	# If graph already exists for user, alert them
 	if graph_exists != None:
 		return 'Graph ' + graphname + ' already exists for ' + username + '!'
@@ -2071,10 +2080,10 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 	# Create database connection
 	db_session = data_connection.new_session()
 
-	validationErrors = validate_json(graph_json)
+	#validationErrors = validate_json(graph_json)
 
-	if validationErrors != None:
-		return validationErrors
+	#if validationErrors != None:
+	#	return validationErrors
 
 	# Get the current time
 	curTime = datetime.now()
@@ -2087,7 +2096,7 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 		graphJson = json.loads(convert_json(graph_json))
 
 	# Attach ID's to each edge for traversing the element
-	graphJson = assign_edge_ids(graphJson)
+	#graphJson = assign_edge_ids(graphJson)
 
 	nodes = graphJson['graph']['nodes']
 
@@ -2103,10 +2112,11 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 	# If we're given a modified time but no creation time, use current time
 	elif created == None:
 		created = curTime
+	print "123"
 
 	# Construct new graph to add to database
 	new_graph = models.Graph(graph_id = graphname, user_id = username, json = json.dumps(graphJson, sort_keys=True, indent=4), created = created, modified = modified, public = public, shared_with_groups = shared_with_groups, default_layout_id = default_layout_id)
-
+	print "qwewq"
 	db_session.add(new_graph)
 	db_session.commit()
 

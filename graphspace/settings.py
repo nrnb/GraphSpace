@@ -8,7 +8,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-## Most of the settings in this file are automatically generated when automatically creating the project. I have added comments (starting with two hashes) before every line that I have modified. 
+## Most of the settings in this file are automatically generated when automatically creating the project. I have added comments (starting with two hashes) before every line that I have modified.
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -54,6 +54,7 @@ INSTALLED_APPS = (
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware'
+
 )
 
 ROOT_URLCONF = 'graphspace.urls'
@@ -102,10 +103,10 @@ STATICFILES_DIRS = (
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-## for authentication. Since we need to use SQL Alchemy for the ORM, we cannot use the authentication backend automatically provided by Django when using the Django ORM. 
+## for authentication. Since we need to use SQL Alchemy for the ORM, we cannot use the authentication backend automatically provided by Django when using the Django ORM.
 AUTHENTICATION_BACKENDS = ('graphs.auth.AuthBackend.AuthBackend',)
 
-## Following the recommendation of the Django tutorial at 
+## Following the recommendation of the Django tutorial at
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
     'django.contrib.auth.hashers.BCryptPasswordHasher',
@@ -115,3 +116,21 @@ PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',
     'django.contrib.auth.hashers.CryptPasswordHasher',
 )
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers':['console'],
+            'propagate': True,
+            'level':'DEBUG',
+        }
+    },
+}
+DEBUG_PROPAGATE_EXCEPTIONS = True
