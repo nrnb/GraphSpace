@@ -1626,7 +1626,7 @@ def upload_gpml_file(username, graph_json, title):
 	# Insert converted graph to GraphSpace and provide URL
 	# for logged in user
 	if username != None:
-		result = insert_graph(username, title, json.dumps(parse_json), gpml=True)
+		result = insert_graph(username, title, json.dumps(parse_json), gpml=True, default_layout_id = 'gpml')
 		return {"Success": URL_PATH + "graphs/" + username + "/" + title + "?layout=gpml&layout_owner=" + username, "default": str(default_layout), 'title': title}
 
 	else:
@@ -1637,11 +1637,7 @@ def upload_gpml_file(username, graph_json, title):
 		first_request = create_public_user(public_user_id)
 
 		if first_request == None:
-			result = insert_graph(public_user_id, title, json.dumps(parse_json), gpml=True)
-			print type(URL_PATH)
-			print type(public_user_id)
-			print type(title)
-			print type(username)
+			result = insert_graph(public_user_id, title, json.dumps(parse_json), gpml=True, default_layout_id = 'gpml')
 			return {"Success": URL_PATH + "graphs/" + public_user_id + "/" + title + "?layout=gpml&layout_owner=" + public_user_id, "default": str(default_layout), 'title': title, 'public_user_id': public_user_id}
 
 		else:

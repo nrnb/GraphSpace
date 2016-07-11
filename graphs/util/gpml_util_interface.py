@@ -106,7 +106,12 @@ def parse_shapes(G, graph_gpml):
         temp_node = {'data': {}}
         # The GraphId attribute for every element is unique.
         # Hence we use this attribute for node_id field of add_node()
-        interface.add_node(G, node['GraphId'])
+        if 'GraphId' in node:
+            interface.add_node(G, node['GraphId'])
+        else:
+            return {"Error": "GPML file must contain GraphId for "
+                "all shape elements!"}
+
 
         G = update_node_graphics(G, node['GraphId'], node)
 
@@ -153,7 +158,11 @@ def parse_datanodes(G, graph_gpml):
     # Go through the node details of the node
     for node in node_attributes:
         # Give an id to the node element.
-        interface.add_node(G, node['GraphId'], shape='rectangle', border_width=2)
+        if 'GraphId' in node:
+            interface.add_node(G, node['GraphId'], shape='rectangle', border_width=2)
+        else:
+            return {"Error": "GPML file must contain GraphId for "
+                "all datanode elements!"}
         # Parse through the 
         G = update_node_graphics(G, node['GraphId'], node)
 
@@ -189,7 +198,11 @@ def parse_labels(G, graph_gpml):
 
     for node in label_attributes:
         temp_node = {'data': {}}
-        interface.add_node(G, node['GraphId'], border_color='#FFFFFF')
+        if 'GraphId' in node:
+            interface.add_node(G, node['GraphId'], border_color='#FFFFFF')
+        else:
+            return {"Error": "GPML file must contain GraphId for "
+                "all lable elements!"}
         update_node_graphics(G, node['GraphId'], node)
 
         if 'Error' in G:
@@ -222,7 +235,10 @@ def parse_interactions(G, graph_gpml):
         temp = []
         for point in edge['points']:
             temp.append(point)
-        edges[edge['GraphId']] = temp
+        if 'GraphId' in edge:
+            edges[edge['GraphId']] = temp
+        return {"Error": "GPML file must contain GraphId for "
+                "all interaction elements!"}
 
     for edge_id, edge in edges.items():
         if len(edge) == 2:
@@ -285,7 +301,11 @@ def parse_groups(G, graph_gpml):
     groups =  graph_gpml.findall(GPML+'Group')
     for group in groups:
         temp_node = {'data': {}}
-        interface.add_node(G, group.attrib['GraphId'])
+        if 'GraphId' in node:
+            interface.add_node(G, group.attrib['GraphId'])
+        else:
+            return {"Error": "GPML file must contain GraphId for "
+                "all group elements!"}
         interface.add_node_group_id(G, group.attrib['GraphId'], group.attrib['GroupId'])
         interface.add_node_color(G,group.attrib['GraphId'], 'white')
         # We explicitly make the border of a group to be black so that we can see
