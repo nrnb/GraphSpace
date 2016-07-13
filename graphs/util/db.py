@@ -966,10 +966,7 @@ def setDefaultLayout(layoutName, graph_id, graph_owner):
 			return "It appears as if the graph requested does not exist."
 
 		# Check to see if the layout is either shared or exists in the database
-		layout = db_session.query(models.Layout).filter(models.Layout.graph_id == graph_id).filter(models.Layout.layout_name == layoutName).filter(or_(models.Layout.shared_with_groups == 1, models.Layout.public == 1)).first()
-
-		if layout == None:
-			return "You can't set a layout as default layout for graph unless layout is shared and the graph is public!"
+		layout = db_session.query(models.Layout).filter(models.Layout.graph_id == graph_id).filter(models.Layout.layout_name == layoutName).first()
 
 		# Update the default layout of the current graph
 		graph.default_layout_id = layout.layout_id
