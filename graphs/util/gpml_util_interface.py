@@ -52,6 +52,8 @@ def parse_gpml(graph_gpml, title):
     # Parsing the GPML file for Group elements.
     # This is the first step because 
     G = parse_groups(G, graph_gpml)
+    if 'Error' in G:
+        return G, "", ""
 
     # Parsing the GPML file for Shape elements
     G = parse_shapes(G, graph_gpml)
