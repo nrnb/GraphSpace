@@ -132,6 +132,8 @@ def parse_shapes(G, graph_gpml):
                 elif shape_type == 'roundedrectangle':
                     interface.add_node_shape(G, node['GraphId'], 'roundrectangle')
                 # everything else works right now, may break with more testing
+                elif shape_type == 'mitochondria':
+                    interface.add_node_shape(G, node['GraphId'], 'ellipse')
                 else:
                     interface.add_node_shape(G, node['GraphId'], shape_type)
         else:
