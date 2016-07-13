@@ -300,8 +300,7 @@ def parse_groups(G, graph_gpml):
     """
     groups =  graph_gpml.findall(GPML+'Group')
     for group in groups:
-        temp_node = {'data': {}}
-        if 'GraphId' in group:
+        if 'GraphId' in group.attrib:
             interface.add_node(G, group.attrib['GraphId'])
         else:
             return {"Error": "GPML file must contain GraphId for "
