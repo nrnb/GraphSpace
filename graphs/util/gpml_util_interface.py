@@ -134,6 +134,9 @@ def parse_shapes(G, graph_gpml):
                 # everything else works right now, may break with more testing
                 elif shape_type == 'mitochondria':
                     interface.add_node_shape(G, node['GraphId'], 'ellipse')
+                # for example look at http://www.wikipathways.org/index.php/Pathway:WP125
+                elif shape_type == 'mim-degradation':
+                    return {"Error": "The shape mim-degradation is not supported"}
                 else:
                     interface.add_node_shape(G, node['GraphId'], shape_type)
         else:
