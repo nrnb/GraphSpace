@@ -239,7 +239,8 @@ def parse_interactions(G, graph_gpml):
             temp.append(point)
         if 'GraphId' in edge:
             edges[edge['GraphId']] = temp
-        return {"Error": "GPML file must contain GraphId for "
+        else:
+            return {"Error": "GPML file must contain GraphId for "
                 "all interaction elements!"}
 
     for edge_id, edge in edges.items():
