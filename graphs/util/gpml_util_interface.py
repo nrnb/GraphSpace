@@ -136,7 +136,8 @@ def parse_shapes(G, graph_gpml):
                 # everything else works right now, may break with more testing
                 elif shape_type in ['mim-degradation', 'none', 'mim-phosphorylated',
                                     'sarcoplasmic reticulum', 'mitochondria',
-                                    'endoplasmic reticulum', 'golgi apparatus']:
+                                    'endoplasmic reticulum', 'golgi apparatus',
+                                    'mim-interaction']:
                     return {"Error": "The shape " + str(shape_type) + " is not supported"}
                 else:
                     interface.add_node_shape(G, node['GraphId'], shape_type)
