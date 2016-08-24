@@ -22,6 +22,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from json_validator import validate_json, assign_edge_ids, convert_json, verify_json
 
+from gpml_util_interface import parse_gpml
+
 data_connection = db_init.db
 
 # Name of the database that is being used as the backend storage
@@ -951,10 +953,7 @@ def setDefaultLayout(layoutName, graph_id, graph_owner):
 			return "It appears as if the graph requested does not exist."
 
 		# Check to see if the layout is either shared or exists in the database
-		layout = db_session.query(models.Layout).filter(models.Layout.graph_id == graph_id).filter(models.Layout.layout_name == layoutName).filter(or_(models.Layout.shared_with_groups == 1, models.Layout.public == 1)).first()
-
-		if layout == None:
-			return "You can't set a layout as default layout for graph unless layout is shared and the graph is public!"
+		layout = db_session.query(models.Layout).filter(models.Layout.graph_id == graph_id).filter(models.Layout.layout_name == layoutName).first()
 
 		# Update the default layout of the current graph
 		graph.default_layout_id = layout.layout_id
@@ -1572,6 +1571,41 @@ def find_all_graphs_containing_nodes(uid, search_type, search_word, view_type, d
 
 	return graph_dict.values()
 
+
+def upload_gpml_file(username, graph_json, title):
+	'''
+		Uploads GPML file to GraphSpace via /upload.
+
+		@param username: Owner of graph
+		@param graphJSON: JSON of graph
+		@param title: Title of graph
+	'''
+
+	parse_json, default_layout, title = parse_gpml(graph_json, title)
+	if 'Error' in parse_json:
+		return parse_json
+	# Create JSON stucture for GraphSpace recognized JSON
+	# Insert converted graph to GraphSpace and provide URL
+	# for logged in user
+	if username != None:
+		result = insert_graph(username, title, json.dumps(parse_json), gpml=True, default_layout_id = 'gpml')
+		return {"Success": URL_PATH + "graphs/" + username + "/" + title + "?layout=gpml&layout_owner=" + username, "default": str(default_layout), 'title': title}
+
+	else:
+		# Create a unique user and insert graph for that name
+		public_user_id = "Public_User_" + str(uuid.uuid4()) + '@temp.com'
+		public_user_id = public_user_id.replace('-', '_')
+
+		first_request = create_public_user(public_user_id)
+
+		if first_request == None:
+			result = insert_graph(public_user_id, title, json.dumps(parse_json), gpml=True, default_layout_id = 'gpml')
+			return {"Success": URL_PATH + "graphs/" + public_user_id + "/" + title + "?layout=gpml&layout_owner=" + public_user_id, "default": str(default_layout), 'title': title, 'public_user_id': public_user_id}
+
+		else:
+			return {"Error": result}
+
+
 def uploadCyjsFile(username, graphJSON, title):
 	'''
 		Uploads a .cyjs file as a JSON via /upload.
@@ -1979,7 +2013,7 @@ def add_unique_to_list(listname, data):
 
 # -------------------------- REST API -------------------------------
 
-def insert_graph(username, graphname, graph_json, created=None, modified=None, public=0, shared_with_groups=0, default_layout_id=None):
+def insert_graph(username, graphname, graph_json, created=None, modified=None, public=0, shared_with_groups=0, default_layout_id=None, gpml=False):
 	'''
 		Inserts a uniquely named graph under a username.
 
@@ -2002,10 +2036,10 @@ def insert_graph(username, graphname, graph_json, created=None, modified=None, p
 	# Create database connection
 	db_session = data_connection.new_session()
 
-	validationErrors = validate_json(graph_json)
-
-	if validationErrors != None:
-		return validationErrors
+	if gpml == False:
+		validationErrors = validate_json(graph_json)
+		if validationErrors != None:
+			return validationErrors
 
 	# Get the current time
 	curTime = datetime.now()
