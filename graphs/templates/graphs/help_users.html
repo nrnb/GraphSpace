@@ -24,6 +24,7 @@
 	<ul>
 		<li><a href="#upload_graphs_rest">Via REST API</a></li>
 		<li><a href="#upload_graphs_cyjs">Via Web Interface</a></li>
+		<li><a href="#upload_gpml">Upload GPML</a></li>
 	</ul>
 	<li><h4><a href="#view_graph">Interact with graphs</a></h4></li>
 		<ul>
@@ -70,7 +71,9 @@
 
 <p>When an anonymous user uploads a graph, it is by default a <b>public</b> graph (See <a href="{{url}}help#upload_graphs_cyjs">uploading via web interface</a>).  A public graph is viewable to any person that visits GraphSpace.  
 
-<p>In order to make a private graph uploaded by a registered user of GraphSpace public, it may be done so through the <a href="{{url}}help/programmers/#make_graph_public">REST API</a>.  By making a graph public, it allows all registered users to share their layouts they create for the graph. (See <a href="#layout_panel">Layouts Panel</a>)</p> 
+<p>In order to make a private graph uploaded by a registered user of GraphSpace public, it may be done so through the <a href="{{url}}help/programmers/#make_graph_public">REST API</a>.  By making a graph public, it allows all registered users to share their layouts they create for the graph. (See <a href="#layout_panel">Layouts Panel</a>)</p>
+
+
 
 <hr>
 <h3 style="padding-top: 50px; margin-top: -40px;" id="groups">Groups</h3>
@@ -106,6 +109,26 @@ A <b>group member</b> is a user that is a part of a group that is owned by someo
 <h4 style="padding-top: 50px; margin-top: -40px;" id="upload_graphs_cyjs">Via Web Interface</h4>
 <p>For users who don't want to use the <a href="{{url}}help/programmers/">REST API</a> for uploading a graph, we provide an easy web interface for <a href="{{url}}graphs/upload">uploading</a> individual graphs.  This interface allows users to upload their graphs directly into their accounts on GraphSpace.
 </p>
+
+<h4 style="padding-top: 50px; margin-top: -40px;"><a  id="gpml_upload"></a>GPML Upload</h4>
+<p>Currently Graphspace supports limited functiionality for files in <a href="http://www.pathvisio.org/gpml/">GPML (Graphical Pathway Markup Language)</a> format.
+Due to differences between cytoscape.js (used by GraphSpace to render graphs) and pathvisio there are some limitations.</p>
+<ul>
+<li>The following shape element types are not supported as they are not available in cytoscape.js
+<ul>
+<li>mim-degradation</li>
+<li>mim-phosphorylated</li>
+<li>sarcoplasmic reticulum</li>
+<li>mitochondria</li>
+<li>endoplasmic reticulum</li>
+<li>golgi apparatus</li>
+<li>mim-interaction</li>
+</ul>
+</li>
+<li>We don’t support curved edges in GPML files.</li>
+<li>All the Interaction elements in the GPML file, i.e. edges must have a source and target node ID.</li>
+<li>Unlike WikiPathways, Groups are visible for DataNodes. They are represented by an empty rectangle which encompasses its group members.</li>
+</ul>
 
 <p>We allow for the <a href="{{url}}graphs/upload">upload</a> of two types of files into GraphSpace using this interface: graphs that follow the <a href="">GraphSpace JSON Reference</a> (.json files) and graphs that are exported directly from Cytoscape 3.1 or later (.cyjs files).</p>
 
